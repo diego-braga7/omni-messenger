@@ -37,6 +37,14 @@ graph TD
 - **postgres**: Banco de dados (Porta interna 5432)
 - **rabbitmq**: Mensageria (Porta 5672 AMQP, 15672 Management)
 
+## Documentação da API
+
+A documentação interativa via Swagger está disponível em:
+`http://localhost:3000/api`
+
+Para detalhes sobre a arquitetura do módulo de mensagens (Z-API, Factory Pattern, SOLID), consulte:
+[Documentação do Módulo Messenger](docs/MESSENGER_MODULE.md)
+
 ## Desenvolvimento
 
 O projeto utiliza:

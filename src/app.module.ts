@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { getTypeOrmConfig } from './config/typeorm.config';
 import { RabbitmqModule } from './modules/rabbitmq/rabbitmq.module';
+import { MessengerModule } from './modules/messenger/messenger.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RabbitmqModule } from './modules/rabbitmq/rabbitmq.module';
       inject: [ConfigService],
     }),
     RabbitmqModule,
+    MessengerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
