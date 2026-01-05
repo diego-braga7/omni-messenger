@@ -12,14 +12,16 @@ import { MessageRepository } from './repositories/message.repository';
 import { MessageTemplateRepository } from './repositories/message-template.repository';
 import { Message } from './entities/message.entity';
 import { MessageTemplate } from './entities/message-template.entity';
+import { User } from './entities/user.entity';
 import { RabbitmqModule } from '../rabbitmq/rabbitmq.module';
 import { MessengerConsumer } from './messenger.consumer';
+import { UserRepository } from './repositories/user.repository';
 
 @Module({
   imports: [
     HttpModule, 
     ConfigModule,
-    TypeOrmModule.forFeature([Message, MessageTemplate]),
+    TypeOrmModule.forFeature([Message, MessageTemplate, User]),
     forwardRef(() => RabbitmqModule),
   ],
   controllers: [MessengerController, TemplateController, MessengerConsumer],
@@ -33,6 +35,7 @@ import { MessengerConsumer } from './messenger.consumer';
     TemplateService,
     MessageRepository,
     MessageTemplateRepository,
+    UserRepository,
   ],
   exports: [MESSENGER_PROVIDER, MessengerService],
 })

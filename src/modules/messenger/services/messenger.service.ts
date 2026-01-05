@@ -1,5 +1,7 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
 import { MessageRepository } from '../repositories/message.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { MessageTemplateRepository } from '../repositories/message-template.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { SendTextDto } from '../dto/send-text.dto';
 import { SendDocumentDto } from '../dto/send-document.dto';
@@ -14,17 +16,35 @@ export class MessengerService {
 
   constructor(
     private readonly messageRepo: MessageRepository,
+    private readonly userRepo: UserRepository,
+    private readonly templateRepo: MessageTemplateRepository,
     private readonly rabbitmqService: RabbitmqService,
     @Inject(MESSENGER_PROVIDER)
     private readonly provider: IMessengerProvider,
   ) {}
 
   async sendText(dto: SendTextDto) {
+    // 1. Find or Create User
+    const user = await this.userRepo.findOrCreate(dto.phone);
+
+    // 2. Validate Template if provided
+    if (dto.modelId) {
+      const template = await this.templateRepo.findById(dto.modelId);
+      if (!template) {
+        throw new BadRequestException('Template not found');
+      }
+      if (template.type !== MessageType.TEXT) {
+        throw new BadRequestException('Template type mismatch. Expected TEXT.');
+      }
+    }
+
     const message = await this.messageRepo.create({
       to: dto.phone,
       content: dto.message,
       type: MessageType.TEXT,
       status: MessageStatus.PENDING,
+      userId: user.id,
+      templateId: dto.modelId,
     });
 
     await this.rabbitmqService.sendMessage('process_message', { messageId: message.id });
@@ -37,6 +57,20 @@ export class MessengerService {
   }
 
   async sendDocument(dto: SendDocumentDto) {
+    // 1. Find or Create User
+    const user = await this.userRepo.findOrCreate(dto.phone);
+
+    // 2. Validate Template if provided
+    if (dto.modelId) {
+      const template = await this.templateRepo.findById(dto.modelId);
+      if (!template) {
+        throw new BadRequestException('Template not found');
+      }
+      if (template.type !== MessageType.DOCUMENT) {
+        throw new BadRequestException('Template type mismatch. Expected DOCUMENT.');
+      }
+    }
+
     const message = await this.messageRepo.create({
       to: dto.phone,
       content: dto.document,
@@ -45,6 +79,8 @@ export class MessengerService {
       extension: dto.extension,
       caption: dto.caption,
       status: MessageStatus.PENDING,
+      userId: user.id,
+      templateId: dto.modelId,
     });
 
     await this.rabbitmqService.sendMessage('process_message', { messageId: message.id });

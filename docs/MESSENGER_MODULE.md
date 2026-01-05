@@ -40,9 +40,12 @@ Body:
   "phone": "5511999999999",
   "message": "Olá, mundo!",
   "delayMessage": 1,
-  "delayTyping": 1
+  "delayTyping": 1,
+  "modelId": "uuid-do-modelo-opcional"
 }
 ```
+
+*Nota: Se `modelId` for fornecido, a mensagem será validada contra o tipo do modelo (deve ser TEXT).*
 
 ### Enviar Documento
 **POST** `/messenger/document`
@@ -54,9 +57,23 @@ Body:
   "document": "https://example.com/file.pdf",
   "fileName": "meu-arquivo",
   "extension": "pdf",
-  "caption": "Segue anexo"
+  "caption": "Segue anexo",
+  "modelId": "uuid-do-modelo-opcional"
 }
 ```
+
+*Nota: Se `modelId` for fornecido, a mensagem será validada contra o tipo do modelo (deve ser DOCUMENT).*
+
+## Funcionalidades Adicionais
+
+### Gestão Automática de Usuários
+Ao enviar uma mensagem para um número de telefone (`phone`), o sistema verifica automaticamente se existe um usuário com este número. Se não existir, um novo registro de usuário é criado na tabela `users` e vinculado à mensagem.
+
+### Validação de Modelos
+O sistema agora suporta a vinculação de mensagens a modelos pré-definidos (`modelId`). Se um ID de modelo for enviado:
+1. O sistema verifica se o modelo existe.
+2. O sistema valida se o tipo do modelo corresponde ao tipo de envio (TEXT ou DOCUMENT).
+3. Retorna erro 400 (Bad Request) em caso de inconsistência.
 
 ## Configuração (Variáveis de Ambiente)
 

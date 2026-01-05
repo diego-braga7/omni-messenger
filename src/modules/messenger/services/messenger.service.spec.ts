@@ -1,14 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessengerService } from './messenger.service';
 import { MessageRepository } from '../repositories/message.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { MessageTemplateRepository } from '../repositories/message-template.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from '../messenger.constants';
 import { MessageStatus } from '../enums/message-status.enum';
 import { MessageType } from '../enums/message-type.enum';
+import { BadRequestException } from '@nestjs/common';
 
 describe('MessengerService', () => {
   let service: MessengerService;
   let messageRepo: MessageRepository;
+  let userRepo: UserRepository;
+  let templateRepo: MessageTemplateRepository;
   let rabbitmqService: RabbitmqService;
   let provider: any;
 
@@ -17,6 +22,14 @@ describe('MessengerService', () => {
     updateStatus: jest.fn(),
     findById: jest.fn(),
     findAll: jest.fn(),
+  };
+
+  const mockUserRepo = {
+    findOrCreate: jest.fn(),
+  };
+
+  const mockTemplateRepo = {
+    findById: jest.fn(),
   };
 
   const mockRabbitmqService = {
@@ -33,6 +46,8 @@ describe('MessengerService', () => {
       providers: [
         MessengerService,
         { provide: MessageRepository, useValue: mockMessageRepo },
+        { provide: UserRepository, useValue: mockUserRepo },
+        { provide: MessageTemplateRepository, useValue: mockTemplateRepo },
         { provide: RabbitmqService, useValue: mockRabbitmqService },
         { provide: MESSENGER_PROVIDER, useValue: mockProvider },
       ],
@@ -40,6 +55,8 @@ describe('MessengerService', () => {
 
     service = module.get<MessengerService>(MessengerService);
     messageRepo = module.get<MessageRepository>(MessageRepository);
+    userRepo = module.get<UserRepository>(UserRepository);
+    templateRepo = module.get<MessageTemplateRepository>(MessageTemplateRepository);
     rabbitmqService = module.get<RabbitmqService>(RabbitmqService);
     provider = module.get(MESSENGER_PROVIDER);
   });
@@ -55,36 +72,54 @@ describe('MessengerService', () => {
   describe('sendText', () => {
     it('should create message, queue it, and update status', async () => {
       const dto = { phone: '123', message: 'test' };
-      const message = { id: '1', ...dto, status: MessageStatus.PENDING };
+      const user = { id: 'u1', phone: '123' };
+      const message = { id: '1', ...dto, status: MessageStatus.PENDING, userId: user.id };
       
+      mockUserRepo.findOrCreate.mockResolvedValue(user);
       mockMessageRepo.create.mockResolvedValue(message);
       
       await service.sendText(dto);
 
+      expect(mockUserRepo.findOrCreate).toHaveBeenCalledWith(dto.phone);
       expect(mockMessageRepo.create).toHaveBeenCalledWith({
         to: dto.phone,
         content: dto.message,
         type: MessageType.TEXT,
         status: MessageStatus.PENDING,
+        userId: user.id,
+        templateId: undefined,
       });
       expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith('process_message', { messageId: '1' });
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.QUEUED);
+    });
+
+    it('should validate template type TEXT', async () => {
+      const dto = { phone: '123', message: 'test', modelId: 't1' };
+      const user = { id: 'u1', phone: '123' };
+      mockUserRepo.findOrCreate.mockResolvedValue(user);
+      mockTemplateRepo.findById.mockResolvedValue({ id: 't1', type: MessageType.DOCUMENT }); // Wrong type
+
+      await expect(service.sendText(dto)).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('sendDocument', () => {
     it('should create document message, queue it, and update status', async () => {
       const dto = { phone: '123', document: 'http://doc.com', fileName: 'doc', extension: 'pdf' };
-      const message = { id: '1', ...dto, type: MessageType.DOCUMENT, status: MessageStatus.PENDING };
+      const user = { id: 'u1', phone: '123' };
+      const message = { id: '1', ...dto, type: MessageType.DOCUMENT, status: MessageStatus.PENDING, userId: user.id };
       
+      mockUserRepo.findOrCreate.mockResolvedValue(user);
       mockMessageRepo.create.mockResolvedValue(message);
       
       await service.sendDocument(dto);
 
+      expect(mockUserRepo.findOrCreate).toHaveBeenCalledWith(dto.phone);
       expect(mockMessageRepo.create).toHaveBeenCalledWith(expect.objectContaining({
         to: dto.phone,
         content: dto.document,
         type: MessageType.DOCUMENT,
+        userId: user.id,
       }));
       expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith('process_message', { messageId: '1' });
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.QUEUED);

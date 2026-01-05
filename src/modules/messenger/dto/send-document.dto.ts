@@ -18,4 +18,7 @@ export class SendDocumentDto {
 
   @ApiPropertyOptional({ example: 1, description: 'Tempo de espera em segundos antes de enviar' })
   delayMessage?: number;
+
+  @ApiPropertyOptional({ example: 'uuid-do-modelo', description: 'ID do modelo de mensagem (obrigatório para novos fluxos)' })
+  modelId?: string;
 }

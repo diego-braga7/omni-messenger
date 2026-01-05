@@ -12,4 +12,7 @@ export class SendTextDto {
 
   @ApiPropertyOptional({ example: 1, description: 'Tempo em segundos que aparecerá "Digitando..."' })
   delayTyping?: number;
+
+  @ApiPropertyOptional({ example: 'uuid-do-modelo', description: 'ID do modelo de mensagem (obrigatório para novos fluxos)' })
+  modelId?: string;
 }

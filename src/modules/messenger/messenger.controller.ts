@@ -12,6 +12,7 @@ export class MessengerController {
   @Post('text')
   @ApiOperation({ summary: 'Enviar mensagem de texto (Assíncrono)' })
   @ApiResponse({ status: 202, description: 'Mensagem enfileirada para envio' })
+  @ApiResponse({ status: 400, description: 'Erro de validação (ex: template incompatível)' })
   @HttpCode(HttpStatus.ACCEPTED)
   async sendText(@Body() dto: SendTextDto) {
     return this.messengerService.sendText(dto);
@@ -20,6 +21,7 @@ export class MessengerController {
   @Post('document')
   @ApiOperation({ summary: 'Enviar documento (Assíncrono)' })
   @ApiResponse({ status: 202, description: 'Documento enfileirado para envio' })
+  @ApiResponse({ status: 400, description: 'Erro de validação (ex: template incompatível)' })
   @HttpCode(HttpStatus.ACCEPTED)
   async sendDocument(@Body() dto: SendDocumentDto) {
     return this.messengerService.sendDocument(dto);

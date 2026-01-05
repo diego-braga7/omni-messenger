@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { MessageStatus } from '../enums/message-status.enum';
 import { MessageType } from '../enums/message-type.enum';
 import { MessageTemplate } from './message-template.entity';
+import { User } from './user.entity';
 
 @Entity('messages')
 @Index(['status'])
@@ -13,6 +14,13 @@ export class Message {
 
   @Column()
   to: string;
+
+  @Column({ name: 'user_id', nullable: true })
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.messages, { nullable: true })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column('text')
   content: string;

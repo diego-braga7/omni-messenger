@@ -6,15 +6,18 @@ import { ConfigModule } from '@nestjs/config';
 import { MessengerModule } from './../src/modules/messenger/messenger.module';
 import { MessageRepository } from './../src/modules/messenger/repositories/message.repository';
 import { MessageTemplateRepository } from './../src/modules/messenger/repositories/message-template.repository';
+import { UserRepository } from './../src/modules/messenger/repositories/user.repository';
 import { RabbitmqService } from './../src/modules/messenger/../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from './../src/modules/messenger/messenger.constants';
 import { Message } from './../src/modules/messenger/entities/message.entity';
 import { MessageTemplate } from './../src/modules/messenger/entities/message-template.entity';
+import { User } from './../src/modules/messenger/entities/user.entity';
 
 describe('MessengerController (e2e)', () => {
   let app: INestApplication;
   let messageRepo: MessageRepository;
   let templateRepo: MessageTemplateRepository;
+  let userRepo: UserRepository;
 
   const mockMessageRepo = {
     create: jest.fn(),
@@ -29,6 +32,10 @@ describe('MessengerController (e2e)', () => {
     findById: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+  };
+
+  const mockUserRepo = {
+    findOrCreate: jest.fn().mockResolvedValue({ id: 'u1', phone: '5511999999999' }),
   };
 
   const mockRabbitmqService = {
@@ -52,7 +59,7 @@ describe('MessengerController (e2e)', () => {
           username: 'postgres',
           password: 'postgres',
           database: 'omni_messenger',
-          entities: [Message, MessageTemplate],
+          entities: [Message, MessageTemplate, User],
           synchronize: true,
         }),
         MessengerModule,
@@ -62,6 +69,8 @@ describe('MessengerController (e2e)', () => {
     .useValue(mockMessageRepo)
     .overrideProvider(MessageTemplateRepository)
     .useValue(mockTemplateRepo)
+    .overrideProvider(UserRepository)
+    .useValue(mockUserRepo)
     .overrideProvider(RabbitmqService)
     .useValue(mockRabbitmqService)
     .overrideProvider(MESSENGER_PROVIDER)
