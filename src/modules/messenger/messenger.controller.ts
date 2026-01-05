@@ -1,42 +1,33 @@
-import { Controller, Post, Body, Inject, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Inject, HttpCode, HttpStatus, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { IMessengerProvider } from './interfaces/messenger.interface';
-import { MESSENGER_PROVIDER } from './messenger.constants';
+import { MessengerService } from './services/messenger.service';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
 
 @ApiTags('Messenger')
 @Controller('messenger')
 export class MessengerController {
-  constructor(
-    @Inject(MESSENGER_PROVIDER) private readonly messengerProvider: IMessengerProvider,
-  ) {}
+  constructor(private readonly messengerService: MessengerService) {}
 
   @Post('text')
-  @ApiOperation({ summary: 'Enviar mensagem de texto simples' })
-  @ApiResponse({ status: 200, description: 'Mensagem enviada com sucesso' })
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Enviar mensagem de texto (Assíncrono)' })
+  @ApiResponse({ status: 202, description: 'Mensagem enfileirada para envio' })
+  @HttpCode(HttpStatus.ACCEPTED)
   async sendText(@Body() dto: SendTextDto) {
-    return this.messengerProvider.sendText(dto.phone, dto.message, {
-      delayMessage: dto.delayMessage,
-      delayTyping: dto.delayTyping,
-    });
+    return this.messengerService.sendText(dto);
   }
 
   @Post('document')
-  @ApiOperation({ summary: 'Enviar documento (PDF, Imagem, etc)' })
-  @ApiResponse({ status: 200, description: 'Documento enviado com sucesso' })
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Enviar documento (Assíncrono)' })
+  @ApiResponse({ status: 202, description: 'Documento enfileirado para envio' })
+  @HttpCode(HttpStatus.ACCEPTED)
   async sendDocument(@Body() dto: SendDocumentDto) {
-    return this.messengerProvider.sendDocument(
-      dto.phone,
-      dto.document,
-      dto.fileName,
-      dto.extension,
-      {
-        caption: dto.caption,
-        delayMessage: dto.delayMessage,
-      },
-    );
+    return this.messengerService.sendDocument(dto);
+  }
+
+  @Get('history')
+  @ApiOperation({ summary: 'Listar histórico de mensagens' })
+  async getHistory() {
+    return this.messengerService.findAll();
   }
 }

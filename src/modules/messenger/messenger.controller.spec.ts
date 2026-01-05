@@ -1,30 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessengerController } from './messenger.controller';
-import { MESSENGER_PROVIDER } from './messenger.constants';
-import { IMessengerProvider } from './interfaces/messenger.interface';
-
-const mockMessengerProvider: IMessengerProvider = {
-  sendText: jest.fn(),
-  sendDocument: jest.fn(),
-};
+import { MessengerService } from './services/messenger.service';
+import { SendTextDto } from './dto/send-text.dto';
+import { SendDocumentDto } from './dto/send-document.dto';
 
 describe('MessengerController', () => {
   let controller: MessengerController;
-  let provider: IMessengerProvider;
+  let service: MessengerService;
+
+  const mockService = {
+    sendText: jest.fn(),
+    sendDocument: jest.fn(),
+    findAll: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MessengerController],
       providers: [
         {
-          provide: MESSENGER_PROVIDER,
-          useValue: mockMessengerProvider,
+          provide: MessengerService,
+          useValue: mockService,
         },
       ],
     }).compile();
 
     controller = module.get<MessengerController>(MessengerController);
-    provider = module.get<IMessengerProvider>(MESSENGER_PROVIDER);
+    service = module.get<MessengerService>(MessengerService);
   });
 
   it('should be defined', () => {
@@ -32,37 +34,38 @@ describe('MessengerController', () => {
   });
 
   describe('sendText', () => {
-    it('should call sendText on provider', async () => {
-      const dto = { phone: '5511999999999', message: 'Hello' };
-      const options = { delayMessage: undefined, delayTyping: undefined };
-      (provider.sendText as jest.Mock).mockResolvedValue('success');
+    it('should call sendText on service', async () => {
+      const dto: SendTextDto = { phone: '5511999999999', message: 'Hello' };
+      mockService.sendText.mockResolvedValue({ id: '1', ...dto });
 
       await controller.sendText(dto);
 
-      expect(provider.sendText).toHaveBeenCalledWith(dto.phone, dto.message, options);
+      expect(service.sendText).toHaveBeenCalledWith(dto);
     });
   });
 
   describe('sendDocument', () => {
-    it('should call sendDocument on provider', async () => {
-      const dto = {
+    it('should call sendDocument on service', async () => {
+      const dto: SendDocumentDto = {
         phone: '5511999999999',
         document: 'http://url.com/doc.pdf',
         fileName: 'doc',
         extension: 'pdf',
       };
-      const options = { caption: undefined, delayMessage: undefined };
-      (provider.sendDocument as jest.Mock).mockResolvedValue('success');
+      mockService.sendDocument.mockResolvedValue({ id: '1', ...dto });
 
       await controller.sendDocument(dto);
 
-      expect(provider.sendDocument).toHaveBeenCalledWith(
-        dto.phone,
-        dto.document,
-        dto.fileName,
-        dto.extension,
-        options,
-      );
+      expect(service.sendDocument).toHaveBeenCalledWith(dto);
+    });
+  });
+
+  describe('getHistory', () => {
+    it('should return message history', async () => {
+      const result = [{ id: '1', content: 'test' }];
+      mockService.findAll.mockResolvedValue(result);
+
+      expect(await controller.getHistory()).toBe(result);
     });
   });
 });
