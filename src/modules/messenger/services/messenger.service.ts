@@ -1,10 +1,11 @@
 import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
 import { MessageRepository } from '../repositories/message.repository';
-import { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../../users/repositories/user.repository';
 import { MessageTemplateRepository } from '../repositories/message-template.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { SendTextDto } from '../dto/send-text.dto';
 import { SendDocumentDto } from '../dto/send-document.dto';
+import { BulkSendDto } from '../dto/bulk-send.dto';
 import { MessageType } from '../enums/message-type.enum';
 import { MessageStatus } from '../enums/message-status.enum';
 import { MESSENGER_PROVIDER } from '../messenger.constants';
@@ -127,6 +128,49 @@ export class MessengerService {
       this.logger.error(`Failed to send message ${messageId}`, error);
       await this.messageRepo.updateStatus(message.id, MessageStatus.FAILED);
     }
+  }
+
+  async sendBulk(dto: BulkSendDto) {
+    const phones = new Set<string>();
+    if (dto.phones) dto.phones.forEach(p => phones.add(p));
+    if (dto.userIds && dto.userIds.length > 0) {
+      const users = await this.userRepo.findByIds(dto.userIds);
+      users.forEach(u => phones.add(u.phone));
+    }
+
+    const phoneList = Array.from(phones);
+    const chunks = this.chunkArray(phoneList, 30);
+    
+    this.logger.log(`Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches.`);
+
+    chunks.forEach((chunk, index) => {
+      setTimeout(async () => {
+        this.logger.log(`Processing bulk batch ${index + 1}/${chunks.length}`);
+        for (const phone of chunk) {
+          try {
+             // We use sendText directly. It queues the message.
+             await this.sendText({ phone, message: dto.message, modelId: dto.modelId });
+          } catch (e) {
+             this.logger.error(`Failed to queue bulk message to ${phone}`, e);
+          }
+        }
+      }, index * 10000); // 10 seconds interval
+    });
+    
+    return { 
+      message: 'Bulk send initiated', 
+      total: phoneList.length, 
+      batches: chunks.length,
+      estimatedTimeSeconds: chunks.length * 10
+    };
+  }
+
+  private chunkArray(array: any[], size: number) {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+      result.push(array.slice(i, i + size));
+    }
+    return result;
   }
 
   async findAll() {

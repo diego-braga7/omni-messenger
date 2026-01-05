@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { MessageStatus } from '../enums/message-status.enum';
 import { MessageType } from '../enums/message-type.enum';
 import { MessageTemplate } from './message-template.entity';
-import { User } from './user.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('messages')
 @Index(['status'])

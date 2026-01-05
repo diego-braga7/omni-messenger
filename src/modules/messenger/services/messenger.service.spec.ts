@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessengerService } from './messenger.service';
 import { MessageRepository } from '../repositories/message.repository';
-import { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../../users/repositories/user.repository';
 import { MessageTemplateRepository } from '../repositories/message-template.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from '../messenger.constants';
@@ -26,6 +26,7 @@ describe('MessengerService', () => {
 
   const mockUserRepo = {
     findOrCreate: jest.fn(),
+    findByIds: jest.fn(),
   };
 
   const mockTemplateRepo = {
@@ -179,6 +180,67 @@ describe('MessengerService', () => {
       await service.processMessage('1');
 
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.FAILED);
+    });
+  });
+
+  describe('sendBulk', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should process bulk send in batches', async () => {
+      const dto = { 
+        phones: ['1', '2', '3', '4'], 
+        message: 'hello',
+        userIds: [] 
+      };
+      // We will mock sendText to avoid internal calls logic complexity here, 
+      // or we can just mock findOrCreate and messageRepo.create if we want to test integration within service.
+      // To keep unit test isolated, let's spyOn sendText.
+      const sendTextSpy = jest.spyOn(service, 'sendText').mockResolvedValue({} as any);
+      
+      // The loop runs async forEach inside chunks.forEach (sync)
+      // but setTimeout makes it async.
+      // Wait multiple ticks.
+      await service.sendBulk(dto);
+      jest.runAllTimers();
+      
+      // Wait enough ticks for the async for-of loop inside setTimeout callback to finish
+      await Promise.resolve(); 
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(sendTextSpy).toHaveBeenCalledTimes(4);
+      expect(sendTextSpy).toHaveBeenCalledWith({ phone: '1', message: 'hello', modelId: undefined });
+      expect(sendTextSpy).toHaveBeenCalledWith({ phone: '4', message: 'hello', modelId: undefined });
+    });
+
+    it('should fetch phones from users and merge with phones list', async () => {
+      const dto = { 
+        phones: ['1'], 
+        message: 'hello',
+        userIds: ['u1', 'u2'] 
+      };
+      
+      mockUserRepo.findByIds.mockResolvedValue([
+        { id: 'u1', phone: '2' },
+        { id: 'u2', phone: '3' }
+      ]);
+      
+      const sendTextSpy = jest.spyOn(service, 'sendText').mockResolvedValue({} as any);
+
+      await service.sendBulk(dto);
+      jest.runAllTimers();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Phones should be 1, 2, 3
+      expect(sendTextSpy).toHaveBeenCalledTimes(3);
     });
   });
 });

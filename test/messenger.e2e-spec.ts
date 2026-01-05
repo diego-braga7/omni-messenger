@@ -6,12 +6,12 @@ import { ConfigModule } from '@nestjs/config';
 import { MessengerModule } from './../src/modules/messenger/messenger.module';
 import { MessageRepository } from './../src/modules/messenger/repositories/message.repository';
 import { MessageTemplateRepository } from './../src/modules/messenger/repositories/message-template.repository';
-import { UserRepository } from './../src/modules/messenger/repositories/user.repository';
+import { UserRepository } from './../src/modules/users/repositories/user.repository';
 import { RabbitmqService } from './../src/modules/messenger/../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from './../src/modules/messenger/messenger.constants';
 import { Message } from './../src/modules/messenger/entities/message.entity';
 import { MessageTemplate } from './../src/modules/messenger/entities/message-template.entity';
-import { User } from './../src/modules/messenger/entities/user.entity';
+import { User } from './../src/modules/users/entities/user.entity';
 
 describe('MessengerController (e2e)', () => {
   let app: INestApplication;
@@ -36,6 +36,7 @@ describe('MessengerController (e2e)', () => {
 
   const mockUserRepo = {
     findOrCreate: jest.fn().mockResolvedValue({ id: 'u1', phone: '5511999999999' }),
+    findByIds: jest.fn().mockResolvedValue([]),
   };
 
   const mockRabbitmqService = {
@@ -83,6 +84,16 @@ describe('MessengerController (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('/messenger/bulk-send (POST)', () => {
+    const dto = { phones: ['1', '2'], message: 'bulk' };
+    mockMessageRepo.create.mockResolvedValue({ id: '1' }); // for internal calls
+
+    return request(app.getHttpServer())
+      .post('/messenger/bulk-send')
+      .send(dto)
+      .expect(202);
   });
 
   it('/messenger/text (POST)', () => {
