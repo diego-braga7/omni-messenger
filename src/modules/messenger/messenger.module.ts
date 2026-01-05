@@ -3,9 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { MessengerController } from './messenger.controller';
 import { ZApiProvider } from './providers/z-api/z-api.service';
-
-// Factory provider para flexibilidade futura (ex: trocar provider via ENV)
-export const MESSENGER_PROVIDER = 'MESSENGER_PROVIDER';
+import { MESSENGER_PROVIDER } from './messenger.constants';
 
 @Module({
   imports: [HttpModule, ConfigModule],

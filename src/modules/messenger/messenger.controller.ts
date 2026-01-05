@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Inject, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { IMessengerProvider } from './interfaces/messenger.interface';
-import { MESSENGER_PROVIDER } from './messenger.module';
+import { MESSENGER_PROVIDER } from './messenger.constants';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
 

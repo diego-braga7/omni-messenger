@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessengerController } from './messenger.controller';
-import { MESSENGER_PROVIDER } from './messenger.module';
+import { MESSENGER_PROVIDER } from './messenger.constants';
 import { IMessengerProvider } from './interfaces/messenger.interface';
 
 const mockMessengerProvider: IMessengerProvider = {
