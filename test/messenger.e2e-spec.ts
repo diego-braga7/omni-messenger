@@ -15,9 +15,6 @@ import { User } from './../src/modules/users/entities/user.entity';
 
 describe('MessengerController (e2e)', () => {
   let app: INestApplication;
-  let messageRepo: MessageRepository;
-  let templateRepo: MessageTemplateRepository;
-  let userRepo: UserRepository;
 
   const mockMessageRepo = {
     create: jest.fn(),
@@ -35,7 +32,9 @@ describe('MessengerController (e2e)', () => {
   };
 
   const mockUserRepo = {
-    findOrCreate: jest.fn().mockResolvedValue({ id: 'u1', phone: '5511999999999' }),
+    findOrCreate: jest
+      .fn()
+      .mockResolvedValue({ id: 'u1', phone: '5511999999999' }),
     findByIds: jest.fn().mockResolvedValue([]),
   };
 
@@ -66,17 +65,17 @@ describe('MessengerController (e2e)', () => {
         MessengerModule,
       ],
     })
-    .overrideProvider(MessageRepository)
-    .useValue(mockMessageRepo)
-    .overrideProvider(MessageTemplateRepository)
-    .useValue(mockTemplateRepo)
-    .overrideProvider(UserRepository)
-    .useValue(mockUserRepo)
-    .overrideProvider(RabbitmqService)
-    .useValue(mockRabbitmqService)
-    .overrideProvider(MESSENGER_PROVIDER)
-    .useValue(mockMessengerProvider)
-    .compile();
+      .overrideProvider(MessageRepository)
+      .useValue(mockMessageRepo)
+      .overrideProvider(MessageTemplateRepository)
+      .useValue(mockTemplateRepo)
+      .overrideProvider(UserRepository)
+      .useValue(mockUserRepo)
+      .overrideProvider(RabbitmqService)
+      .useValue(mockRabbitmqService)
+      .overrideProvider(MESSENGER_PROVIDER)
+      .useValue(mockMessengerProvider)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();

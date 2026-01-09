@@ -6,7 +6,6 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repo: UserRepository;
 
   const mockRepo = {
     create: jest.fn(),
@@ -25,7 +24,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repo = module.get<UserRepository>(UserRepository);
   });
 
   it('should be defined', () => {

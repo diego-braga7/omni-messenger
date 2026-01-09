@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { MessageTemplateRepository } from './message-template.repository';
 import { MessageTemplate } from '../entities/message-template.entity';
 
 describe('MessageTemplateRepository', () => {
   let repository: MessageTemplateRepository;
-  let typeOrmRepo: Repository<MessageTemplate>;
 
   const mockTypeOrmRepo = {
     create: jest.fn(),
@@ -28,8 +26,9 @@ describe('MessageTemplateRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<MessageTemplateRepository>(MessageTemplateRepository);
-    typeOrmRepo = module.get<Repository<MessageTemplate>>(getRepositoryToken(MessageTemplate));
+    repository = module.get<MessageTemplateRepository>(
+      MessageTemplateRepository,
+    );
   });
 
   it('should be defined', () => {
@@ -40,7 +39,7 @@ describe('MessageTemplateRepository', () => {
     it('should create and save a template', async () => {
       const data = { name: 'tpl', content: 'test' };
       const createdEntity = { id: '1', ...data };
-      
+
       mockTypeOrmRepo.create.mockReturnValue(createdEntity);
       mockTypeOrmRepo.save.mockResolvedValue(createdEntity);
 
@@ -58,7 +57,9 @@ describe('MessageTemplateRepository', () => {
 
       const result = await repository.findAll();
       expect(result).toEqual(templates);
-      expect(mockTypeOrmRepo.find).toHaveBeenCalledWith({ order: { name: 'ASC' } });
+      expect(mockTypeOrmRepo.find).toHaveBeenCalledWith({
+        order: { name: 'ASC' },
+      });
     });
   });
 
@@ -69,7 +70,9 @@ describe('MessageTemplateRepository', () => {
 
       const result = await repository.findById('1');
       expect(result).toEqual(template);
-      expect(mockTypeOrmRepo.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockTypeOrmRepo.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
   });
 

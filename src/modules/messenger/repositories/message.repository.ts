@@ -17,13 +17,17 @@ export class MessageRepository {
   }
 
   async findById(id: string): Promise<Message | null> {
-    return this.repo.findOne({ 
+    return this.repo.findOne({
       where: { id },
-      relations: ['zApiReturn']
+      relations: ['zApiReturn'],
     });
   }
 
-  async updateStatus(id: string, status: MessageStatus, externalId?: string): Promise<void> {
+  async updateStatus(
+    id: string,
+    status: MessageStatus,
+    externalId?: string,
+  ): Promise<void> {
     const updateData: Partial<Message> = { status };
     if (externalId) {
       updateData.externalId = externalId;
@@ -32,9 +36,9 @@ export class MessageRepository {
   }
 
   async findAll(): Promise<Message[]> {
-    return this.repo.find({ 
+    return this.repo.find({
       order: { createdAt: 'DESC' },
-      relations: ['zApiReturn']
+      relations: ['zApiReturn'],
     });
   }
 }

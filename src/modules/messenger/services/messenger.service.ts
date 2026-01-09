@@ -1,4 +1,9 @@
-import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { MessageRepository } from '../repositories/message.repository';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { MessageTemplateRepository } from '../repositories/message-template.repository';
@@ -50,9 +55,11 @@ export class MessengerService {
       templateId: dto.modelId,
     });
 
-    await this.rabbitmqService.sendMessage('process_message', { messageId: message.id });
-    
-    // Update to queued immediately after emitting? Or wait? 
+    await this.rabbitmqService.sendMessage('process_message', {
+      messageId: message.id,
+    });
+
+    // Update to queued immediately after emitting? Or wait?
     // Let's assume queued if emit succeeds.
     await this.messageRepo.updateStatus(message.id, MessageStatus.QUEUED);
 
@@ -70,7 +77,9 @@ export class MessengerService {
         throw new BadRequestException('Template not found');
       }
       if (template.type !== MessageType.DOCUMENT) {
-        throw new BadRequestException('Template type mismatch. Expected DOCUMENT.');
+        throw new BadRequestException(
+          'Template type mismatch. Expected DOCUMENT.',
+        );
       }
     }
 
@@ -86,7 +95,9 @@ export class MessengerService {
       templateId: dto.modelId,
     });
 
-    await this.rabbitmqService.sendMessage('process_message', { messageId: message.id });
+    await this.rabbitmqService.sendMessage('process_message', {
+      messageId: message.id,
+    });
     await this.messageRepo.updateStatus(message.id, MessageStatus.QUEUED);
 
     return message;
@@ -95,7 +106,7 @@ export class MessengerService {
   async processMessage(messageId: string) {
     this.logger.log(`Processing message ${messageId}`);
     const message = await this.messageRepo.findById(messageId);
-    
+
     if (!message) {
       this.logger.error(`Message ${messageId} not found`);
       return;
@@ -116,20 +127,27 @@ export class MessengerService {
           message.content,
           message.fileName || 'file',
           message.extension || 'txt',
-          { caption: message.caption }
+          { caption: message.caption },
         );
       }
 
       await this.messageRepo.updateStatus(
-        message.id, 
-        MessageStatus.SENT, 
-        result?.messageId || 'external-id-placeholder'
+        message.id,
+        MessageStatus.SENT,
+        result?.id || result?.messageId || 'external-id-placeholder',
       );
 
       if (result?.zaapId && result?.id) {
-        await this.zApiReturnRepo.saveReturn(message.id, result.zaapId, result.id);
+        await this.zApiReturnRepo.saveReturn(
+          message.id,
+          result.zaapId,
+          result.id,
+        );
       } else {
-        this.logger.warn(`Z-API response missing zaapId or id for message ${message.id}`, result);
+        this.logger.warn(
+          `Z-API response missing zaapId or id for message ${message.id}`,
+          result,
+        );
       }
 
       this.logger.log(`Message ${messageId} sent successfully`);
@@ -141,36 +159,42 @@ export class MessengerService {
 
   async sendBulk(dto: BulkSendDto) {
     const phones = new Set<string>();
-    if (dto.phones) dto.phones.forEach(p => phones.add(p));
+    if (dto.phones) dto.phones.forEach((p) => phones.add(p));
     if (dto.userIds && dto.userIds.length > 0) {
       const users = await this.userRepo.findByIds(dto.userIds);
-      users.forEach(u => phones.add(u.phone));
+      users.forEach((u) => phones.add(u.phone));
     }
 
     const phoneList = Array.from(phones);
     const chunks = this.chunkArray(phoneList, 30);
-    
-    this.logger.log(`Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches.`);
+
+    this.logger.log(
+      `Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches.`,
+    );
 
     chunks.forEach((chunk, index) => {
       setTimeout(async () => {
         this.logger.log(`Processing bulk batch ${index + 1}/${chunks.length}`);
         for (const phone of chunk) {
           try {
-             // We use sendText directly. It queues the message.
-             await this.sendText({ phone, message: dto.message, modelId: dto.modelId });
+            // We use sendText directly. It queues the message.
+            await this.sendText({
+              phone,
+              message: dto.message,
+              modelId: dto.modelId,
+            });
           } catch (e) {
-             this.logger.error(`Failed to queue bulk message to ${phone}`, e);
+            this.logger.error(`Failed to queue bulk message to ${phone}`, e);
           }
         }
       }, index * 10000); // 10 seconds interval
     });
-    
-    return { 
-      message: 'Bulk send initiated', 
-      total: phoneList.length, 
+
+    return {
+      message: 'Bulk send initiated',
+      total: phoneList.length,
       batches: chunks.length,
-      estimatedTimeSeconds: chunks.length * 10
+      estimatedTimeSeconds: chunks.length * 10,
     };
   }
 

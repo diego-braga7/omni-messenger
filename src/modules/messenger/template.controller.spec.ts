@@ -6,7 +6,6 @@ import { MessageType } from './enums/message-type.enum';
 
 describe('TemplateController', () => {
   let controller: TemplateController;
-  let service: TemplateService;
 
   const mockService = {
     create: jest.fn(),
@@ -28,7 +27,6 @@ describe('TemplateController', () => {
     }).compile();
 
     controller = module.get<TemplateController>(TemplateController);
-    service = module.get<TemplateService>(TemplateService);
   });
 
   it('should be defined', () => {
@@ -37,7 +35,11 @@ describe('TemplateController', () => {
 
   describe('create', () => {
     it('should create a template', async () => {
-      const dto: CreateTemplateDto = { name: 'Test', content: 'Hello', type: MessageType.TEXT };
+      const dto: CreateTemplateDto = {
+        name: 'Test',
+        content: 'Hello',
+        type: MessageType.TEXT,
+      };
       mockService.create.mockResolvedValue({ id: '1', ...dto });
 
       expect(await controller.create(dto)).toEqual({ id: '1', ...dto });

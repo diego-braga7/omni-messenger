@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  OneToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { MessageStatus } from '../enums/message-status.enum';
 import { MessageType } from '../enums/message-type.enum';
@@ -59,7 +69,9 @@ export class Message {
   @Column({ name: 'template_id', nullable: true })
   templateId: string;
 
-  @ManyToOne(() => MessageTemplate, (template) => template.messages, { nullable: true })
+  @ManyToOne(() => MessageTemplate, (template) => template.messages, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'template_id' })
   template: MessageTemplate;
 

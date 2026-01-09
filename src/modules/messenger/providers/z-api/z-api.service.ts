@@ -46,7 +46,12 @@ export class ZApiProvider implements IMessengerProvider {
       const response = await firstValueFrom(
         this.httpService.post(url, payload, { headers: this.getHeaders() }),
       );
-      return response.data;
+      return {
+        messageId: response.data.messageId,
+        zaapId: response.data.zaapId,
+        id: response.data.id,
+        ...response.data
+      };
     } catch (error) {
       this.logger.error(`Error sending text via Z-API: ${error.message}`, error.response?.data);
       throw error;
@@ -75,7 +80,12 @@ export class ZApiProvider implements IMessengerProvider {
       const response = await firstValueFrom(
         this.httpService.post(url, payload, { headers: this.getHeaders() }),
       );
-      return response.data;
+      return {
+        messageId: response.data.messageId,
+        zaapId: response.data.zaapId,
+        id: response.data.id,
+        ...response.data
+      };
     } catch (error) {
       this.logger.error(`Error sending document via Z-API: ${error.message}`, error.response?.data);
       throw error;

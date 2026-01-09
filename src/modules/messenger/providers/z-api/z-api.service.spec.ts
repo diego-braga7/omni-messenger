@@ -57,7 +57,12 @@ describe('ZApiProvider', () => {
       expect(httpService.post).toHaveBeenCalledWith(
         'https://api.z-api.io/instances/instance-123/token/token-123/send-text',
         { phone, message, delayMessage: undefined, delayTyping: undefined },
-        { headers: { 'Client-Token': 'client-token-123', 'Content-Type': 'application/json' } },
+        {
+          headers: {
+            'Client-Token': 'client-token-123',
+            'Content-Type': 'application/json',
+          },
+        },
       );
       expect(result).toEqual(response.data);
     });
@@ -73,12 +78,28 @@ describe('ZApiProvider', () => {
 
       mockHttpService.post.mockReturnValue(of(response));
 
-      const result = await service.sendDocument(phone, document, fileName, extension);
+      const result = await service.sendDocument(
+        phone,
+        document,
+        fileName,
+        extension,
+      );
 
       expect(httpService.post).toHaveBeenCalledWith(
         'https://api.z-api.io/instances/instance-123/token/token-123/send-document/pdf',
-        { phone, document, fileName, caption: undefined, delayMessage: undefined },
-        { headers: { 'Client-Token': 'client-token-123', 'Content-Type': 'application/json' } },
+        {
+          phone,
+          document,
+          fileName,
+          caption: undefined,
+          delayMessage: undefined,
+        },
+        {
+          headers: {
+            'Client-Token': 'client-token-123',
+            'Content-Type': 'application/json',
+          },
+        },
       );
       expect(result).toEqual(response.data);
     });

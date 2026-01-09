@@ -9,6 +9,16 @@ export interface ISendDocumentOptions {
 }
 
 export interface IMessengerProvider {
-  sendText(to: string, message: string, options?: ISendTextOptions): Promise<any>;
-  sendDocument(to: string, documentUrl: string, fileName: string, extension: string, options?: ISendDocumentOptions): Promise<any>;
+  sendText(
+    to: string,
+    message: string,
+    options?: ISendTextOptions,
+  ): Promise<any>;
+  sendDocument(
+    to: string,
+    documentUrl: string,
+    fileName: string,
+    extension: string,
+    options?: ISendDocumentOptions,
+  ): Promise<any>;
 }

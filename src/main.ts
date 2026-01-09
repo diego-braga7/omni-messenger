@@ -9,7 +9,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Omni Messenger API')
-    .setDescription('API para envio de mensagens via múltiplos canais (Z-API, etc)')
+    .setDescription(
+      'API para envio de mensagens via múltiplos canais (Z-API, etc)',
+    )
     .setVersion('1.0')
     .addTag('Messenger')
     .build();

@@ -1,5 +1,19 @@
-import { Controller, Post, Body, Inject, HttpCode, HttpStatus, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Param,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { MessengerService } from './services/messenger.service';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
@@ -14,7 +28,10 @@ export class MessengerController {
   @Post('text')
   @ApiOperation({ summary: 'Enviar mensagem de texto (Assíncrono)' })
   @ApiResponse({ status: 202, description: 'Mensagem enfileirada para envio' })
-  @ApiResponse({ status: 400, description: 'Erro de validação (ex: template incompatível)' })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro de validação (ex: template incompatível)',
+  })
   @HttpCode(HttpStatus.ACCEPTED)
   async sendText(@Body() dto: SendTextDto) {
     return this.messengerService.sendText(dto);
@@ -23,7 +40,10 @@ export class MessengerController {
   @Post('document')
   @ApiOperation({ summary: 'Enviar documento (Assíncrono)' })
   @ApiResponse({ status: 202, description: 'Documento enfileirado para envio' })
-  @ApiResponse({ status: 400, description: 'Erro de validação (ex: template incompatível)' })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro de validação (ex: template incompatível)',
+  })
   @HttpCode(HttpStatus.ACCEPTED)
   async sendDocument(@Body() dto: SendDocumentDto) {
     return this.messengerService.sendDocument(dto);
@@ -42,10 +62,10 @@ export class MessengerController {
           phones: ['5511999999999', '5511988888888'],
           userIds: ['uuid-user-1', 'uuid-user-2'],
           message: 'Olá, esta é uma mensagem em massa!',
-          modelId: 'optional-model-uuid'
-        }
-      }
-    }
+          modelId: 'optional-model-uuid',
+        },
+      },
+    },
   })
   async sendBulk(@Body() dto: BulkSendDto) {
     return this.messengerService.sendBulk(dto);
@@ -60,7 +80,11 @@ export class MessengerController {
   @Get(':id')
   @ApiOperation({ summary: 'Buscar mensagem por ID' })
   @ApiParam({ name: 'id', description: 'ID da mensagem' })
-  @ApiResponse({ status: 200, description: 'Mensagem encontrada', type: Message })
+  @ApiResponse({
+    status: 200,
+    description: 'Mensagem encontrada',
+    type: Message,
+  })
   @ApiResponse({ status: 404, description: 'Mensagem não encontrada' })
   async getMessage(@Param('id') id: string) {
     return this.messengerService.findOne(id);

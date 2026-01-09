@@ -14,7 +14,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         useFactory: (configService: ConfigService) => {
           const uri = configService.get<string>('RABBITMQ_URI');
           if (!uri) {
-             throw new Error('RABBITMQ_URI is not defined in environment variables');
+            throw new Error(
+              'RABBITMQ_URI is not defined in environment variables',
+            );
           }
           return {
             transport: Transport.RMQ,

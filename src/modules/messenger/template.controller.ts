@@ -1,5 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TemplateService } from './services/template.service';
 import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
@@ -29,7 +39,10 @@ export class TemplateController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Atualizar modelo' })
-  async update(@Param('id') id: string, @Body() updateTemplateDto: UpdateTemplateDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateTemplateDto: UpdateTemplateDto,
+  ) {
     return this.templateService.update(id, updateTemplateDto);
   }
 

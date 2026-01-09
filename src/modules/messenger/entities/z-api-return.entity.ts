@@ -1,4 +1,12 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Message } from './message.entity';
 
@@ -12,7 +20,10 @@ export class ZApiReturn {
   @Column({ name: 'zaap_id', nullable: false })
   zaapId: string;
 
-  @ApiProperty({ description: 'ID interno do retorno Z-API', example: 'AD7S8D7S8D7' })
+  @ApiProperty({
+    description: 'ID interno do retorno Z-API',
+    example: 'AD7S8D7S8D7',
+  })
   @Column({ name: 'id', nullable: false })
   id: string;
 

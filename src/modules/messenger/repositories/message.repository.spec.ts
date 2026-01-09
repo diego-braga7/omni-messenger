@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { MessageRepository } from './message.repository';
 import { Message } from '../entities/message.entity';
 import { MessageStatus } from '../enums/message-status.enum';
 
 describe('MessageRepository', () => {
   let repository: MessageRepository;
-  let typeOrmRepo: Repository<Message>;
 
   const mockTypeOrmRepo = {
     create: jest.fn(),
@@ -29,7 +27,6 @@ describe('MessageRepository', () => {
     }).compile();
 
     repository = module.get<MessageRepository>(MessageRepository);
-    typeOrmRepo = module.get<Repository<Message>>(getRepositoryToken(Message));
   });
 
   it('should be defined', () => {
@@ -40,7 +37,7 @@ describe('MessageRepository', () => {
     it('should create and save a message', async () => {
       const data = { to: '123', content: 'test' };
       const createdEntity = { id: '1', ...data };
-      
+
       mockTypeOrmRepo.create.mockReturnValue(createdEntity);
       mockTypeOrmRepo.save.mockResolvedValue(createdEntity);
 
@@ -82,9 +79,9 @@ describe('MessageRepository', () => {
   describe('updateStatus', () => {
     it('should update message status', async () => {
       await repository.updateStatus('1', MessageStatus.SENT, 'ext-1');
-      expect(mockTypeOrmRepo.update).toHaveBeenCalledWith('1', { 
-        status: MessageStatus.SENT, 
-        externalId: 'ext-1' 
+      expect(mockTypeOrmRepo.update).toHaveBeenCalledWith('1', {
+        status: MessageStatus.SENT,
+        externalId: 'ext-1',
       });
     });
   });

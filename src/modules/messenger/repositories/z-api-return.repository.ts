@@ -8,7 +8,11 @@ export class ZApiReturnRepository extends Repository<ZApiReturn> {
     super(ZApiReturn, dataSource.createEntityManager());
   }
 
-  async saveReturn(messageId: string, zaapId: string, id: string): Promise<ZApiReturn> {
+  async saveReturn(
+    messageId: string,
+    zaapId: string,
+    id: string,
+  ): Promise<ZApiReturn> {
     const record = this.create({
       messageId,
       zaapId,

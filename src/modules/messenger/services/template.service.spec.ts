@@ -7,7 +7,6 @@ import { NotFoundException } from '@nestjs/common';
 
 describe('TemplateService', () => {
   let service: TemplateService;
-  let repository: MessageTemplateRepository;
 
   const mockRepository = {
     create: jest.fn(),
@@ -26,7 +25,6 @@ describe('TemplateService', () => {
     }).compile();
 
     service = module.get<TemplateService>(TemplateService);
-    repository = module.get<MessageTemplateRepository>(MessageTemplateRepository);
   });
 
   it('should be defined', () => {
@@ -35,7 +33,11 @@ describe('TemplateService', () => {
 
   describe('create', () => {
     it('should create a template', async () => {
-      const dto: CreateTemplateDto = { name: 'Test', content: 'Content', type: MessageType.TEXT };
+      const dto: CreateTemplateDto = {
+        name: 'Test',
+        content: 'Content',
+        type: MessageType.TEXT,
+      };
       mockRepository.create.mockResolvedValue({ id: '1', ...dto });
 
       const result = await service.create(dto);

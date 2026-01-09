@@ -12,12 +12,6 @@ import { BadRequestException } from '@nestjs/common';
 
 describe('MessengerService', () => {
   let service: MessengerService;
-  let messageRepo: MessageRepository;
-  let userRepo: UserRepository;
-  let templateRepo: MessageTemplateRepository;
-  let zApiReturnRepo: ZApiReturnRepository;
-  let rabbitmqService: RabbitmqService;
-  let provider: any;
 
   const mockMessageRepo = {
     create: jest.fn(),
@@ -62,12 +56,6 @@ describe('MessengerService', () => {
     }).compile();
 
     service = module.get<MessengerService>(MessengerService);
-    messageRepo = module.get<MessageRepository>(MessageRepository);
-    userRepo = module.get<UserRepository>(UserRepository);
-    templateRepo = module.get<MessageTemplateRepository>(MessageTemplateRepository);
-    zApiReturnRepo = module.get<ZApiReturnRepository>(ZApiReturnRepository);
-    rabbitmqService = module.get<RabbitmqService>(RabbitmqService);
-    provider = module.get(MESSENGER_PROVIDER);
   });
 
   afterEach(() => {
@@ -82,11 +70,16 @@ describe('MessengerService', () => {
     it('should create message, queue it, and update status', async () => {
       const dto = { phone: '123', message: 'test' };
       const user = { id: 'u1', phone: '123' };
-      const message = { id: '1', ...dto, status: MessageStatus.PENDING, userId: user.id };
-      
+      const message = {
+        id: '1',
+        ...dto,
+        status: MessageStatus.PENDING,
+        userId: user.id,
+      };
+
       mockUserRepo.findOrCreate.mockResolvedValue(user);
       mockMessageRepo.create.mockResolvedValue(message);
-      
+
       await service.sendText(dto);
 
       expect(mockUserRepo.findOrCreate).toHaveBeenCalledWith(dto.phone);
@@ -98,15 +91,24 @@ describe('MessengerService', () => {
         userId: user.id,
         templateId: undefined,
       });
-      expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith('process_message', { messageId: '1' });
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.QUEUED);
+      expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith(
+        'process_message',
+        { messageId: '1' },
+      );
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.QUEUED,
+      );
     });
 
     it('should validate template type TEXT', async () => {
       const dto = { phone: '123', message: 'test', modelId: 't1' };
       const user = { id: 'u1', phone: '123' };
       mockUserRepo.findOrCreate.mockResolvedValue(user);
-      mockTemplateRepo.findById.mockResolvedValue({ id: 't1', type: MessageType.DOCUMENT }); // Wrong type
+      mockTemplateRepo.findById.mockResolvedValue({
+        id: 't1',
+        type: MessageType.DOCUMENT,
+      }); // Wrong type
 
       await expect(service.sendText(dto)).rejects.toThrow(BadRequestException);
     });
@@ -114,24 +116,43 @@ describe('MessengerService', () => {
 
   describe('sendDocument', () => {
     it('should create document message, queue it, and update status', async () => {
-      const dto = { phone: '123', document: 'http://doc.com', fileName: 'doc', extension: 'pdf' };
+      const dto = {
+        phone: '123',
+        document: 'http://doc.com',
+        fileName: 'doc',
+        extension: 'pdf',
+      };
       const user = { id: 'u1', phone: '123' };
-      const message = { id: '1', ...dto, type: MessageType.DOCUMENT, status: MessageStatus.PENDING, userId: user.id };
-      
+      const message = {
+        id: '1',
+        ...dto,
+        type: MessageType.DOCUMENT,
+        status: MessageStatus.PENDING,
+        userId: user.id,
+      };
+
       mockUserRepo.findOrCreate.mockResolvedValue(user);
       mockMessageRepo.create.mockResolvedValue(message);
-      
+
       await service.sendDocument(dto);
 
       expect(mockUserRepo.findOrCreate).toHaveBeenCalledWith(dto.phone);
-      expect(mockMessageRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        to: dto.phone,
-        content: dto.document,
-        type: MessageType.DOCUMENT,
-        userId: user.id,
-      }));
-      expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith('process_message', { messageId: '1' });
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.QUEUED);
+      expect(mockMessageRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: dto.phone,
+          content: dto.document,
+          type: MessageType.DOCUMENT,
+          userId: user.id,
+        }),
+      );
+      expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith(
+        'process_message',
+        { messageId: '1' },
+      );
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.QUEUED,
+      );
     });
   });
 
@@ -144,64 +165,122 @@ describe('MessengerService', () => {
     });
 
     it('should do nothing if message already sent', async () => {
-      mockMessageRepo.findById.mockResolvedValue({ id: '1', status: MessageStatus.SENT });
+      mockMessageRepo.findById.mockResolvedValue({
+        id: '1',
+        status: MessageStatus.SENT,
+      });
       await service.processMessage('1');
       expect(mockProvider.sendText).not.toHaveBeenCalled();
     });
 
     it('should send document message via provider', async () => {
-      const message = { 
-        id: '1', 
-        to: '123', 
-        content: 'url', 
-        type: MessageType.DOCUMENT, 
+      const message = {
+        id: '1',
+        to: '123',
+        content: 'url',
+        type: MessageType.DOCUMENT,
         status: MessageStatus.QUEUED,
         fileName: 'file',
         extension: 'pdf',
-        caption: 'cap'
+        caption: 'cap',
       };
       mockMessageRepo.findById.mockResolvedValue(message);
-      mockProvider.sendDocument.mockResolvedValue({ messageId: 'ext-2', zaapId: 'z2', id: 'id2' });
+      mockProvider.sendDocument.mockResolvedValue({
+        messageId: 'ext-2',
+        zaapId: 'z2',
+        id: 'id2',
+      });
 
       await service.processMessage('1');
 
-      expect(mockProvider.sendDocument).toHaveBeenCalledWith('123', 'url', 'file', 'pdf', { caption: 'cap' });
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-2');
-      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith('1', 'z2', 'id2');
+      expect(mockProvider.sendDocument).toHaveBeenCalledWith(
+        '123',
+        'url',
+        'file',
+        'pdf',
+        { caption: 'cap' },
+      );
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.SENT,
+        'ext-2',
+      );
+      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith(
+        '1',
+        'z2',
+        'id2',
+      );
     });
 
     it('should send text message via provider and update status to SENT', async () => {
-      const message = { id: '1', to: '123', content: 'hello', type: MessageType.TEXT, status: MessageStatus.QUEUED };
+      const message = {
+        id: '1',
+        to: '123',
+        content: 'hello',
+        type: MessageType.TEXT,
+        status: MessageStatus.QUEUED,
+      };
       mockMessageRepo.findById.mockResolvedValue(message);
-      mockProvider.sendText.mockResolvedValue({ messageId: 'ext-1', zaapId: 'z1', id: 'id1' });
+      mockProvider.sendText.mockResolvedValue({
+        messageId: 'ext-1',
+        zaapId: 'z1',
+        id: 'id1',
+      });
 
       await service.processMessage('1');
 
       expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-1');
-      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith('1', 'z1', 'id1');
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.SENT,
+        'ext-1',
+      );
+      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith(
+        '1',
+        'z1',
+        'id1',
+      );
     });
 
     it('should log warning if Z-API response is missing IDs', async () => {
-      const message = { id: '1', to: '123', content: 'hello', type: MessageType.TEXT, status: MessageStatus.QUEUED };
+      const message = {
+        id: '1',
+        to: '123',
+        content: 'hello',
+        type: MessageType.TEXT,
+        status: MessageStatus.QUEUED,
+      };
       mockMessageRepo.findById.mockResolvedValue(message);
       mockProvider.sendText.mockResolvedValue({ messageId: 'ext-1' }); // missing zaapId/id
 
       await service.processMessage('1');
 
       expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-1');
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.SENT,
+        'ext-1',
+      );
       expect(mockZApiReturnRepo.saveReturn).not.toHaveBeenCalled();
     });
 
     it('should fail and update status to FAILED', async () => {
-      const message = { id: '1', to: '123', content: 'hello', type: MessageType.TEXT, status: MessageStatus.QUEUED };
+      const message = {
+        id: '1',
+        to: '123',
+        content: 'hello',
+        type: MessageType.TEXT,
+        status: MessageStatus.QUEUED,
+      };
       mockMessageRepo.findById.mockResolvedValue(message);
       mockProvider.sendText.mockRejectedValue(new Error('fail'));
 
       await service.processMessage('1');
 
-      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.FAILED);
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
+        '1',
+        MessageStatus.FAILED,
+      );
     });
   });
 
@@ -215,45 +294,57 @@ describe('MessengerService', () => {
     });
 
     it('should process bulk send in batches', async () => {
-      const dto = { 
-        phones: ['1', '2', '3', '4'], 
+      const dto = {
+        phones: ['1', '2', '3', '4'],
         message: 'hello',
-        userIds: [] 
+        userIds: [],
       };
-      // We will mock sendText to avoid internal calls logic complexity here, 
+      // We will mock sendText to avoid internal calls logic complexity here,
       // or we can just mock findOrCreate and messageRepo.create if we want to test integration within service.
       // To keep unit test isolated, let's spyOn sendText.
-      const sendTextSpy = jest.spyOn(service, 'sendText').mockResolvedValue({} as any);
-      
+      const sendTextSpy = jest
+        .spyOn(service, 'sendText')
+        .mockResolvedValue({} as any);
+
       // The loop runs async forEach inside chunks.forEach (sync)
       // but setTimeout makes it async.
       // Wait multiple ticks.
       await service.sendBulk(dto);
       jest.runAllTimers();
-      
+
       // Wait enough ticks for the async for-of loop inside setTimeout callback to finish
-      await Promise.resolve(); 
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
 
       expect(sendTextSpy).toHaveBeenCalledTimes(4);
-      expect(sendTextSpy).toHaveBeenCalledWith({ phone: '1', message: 'hello', modelId: undefined });
-      expect(sendTextSpy).toHaveBeenCalledWith({ phone: '4', message: 'hello', modelId: undefined });
+      expect(sendTextSpy).toHaveBeenCalledWith({
+        phone: '1',
+        message: 'hello',
+        modelId: undefined,
+      });
+      expect(sendTextSpy).toHaveBeenCalledWith({
+        phone: '4',
+        message: 'hello',
+        modelId: undefined,
+      });
     });
 
     it('should fetch phones from users and merge with phones list', async () => {
-      const dto = { 
-        phones: ['1'], 
+      const dto = {
+        phones: ['1'],
         message: 'hello',
-        userIds: ['u1', 'u2'] 
+        userIds: ['u1', 'u2'],
       };
-      
+
       mockUserRepo.findByIds.mockResolvedValue([
         { id: 'u1', phone: '2' },
-        { id: 'u2', phone: '3' }
+        { id: 'u2', phone: '3' },
       ]);
-      
-      const sendTextSpy = jest.spyOn(service, 'sendText').mockResolvedValue({} as any);
+
+      const sendTextSpy = jest
+        .spyOn(service, 'sendText')
+        .mockResolvedValue({} as any);
 
       await service.sendBulk(dto);
       jest.runAllTimers();

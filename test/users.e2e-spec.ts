@@ -8,7 +8,7 @@ import { User } from './../src/modules/users/entities/user.entity';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
-  
+
   const mockUserRepo = {
     create: jest.fn(),
     findAll: jest.fn(),
@@ -21,18 +21,18 @@ describe('UsersController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot({
-           type: 'sqlite',
-           database: ':memory:',
-           entities: [User],
-           synchronize: true,
-           dropSchema: true,
+          type: 'sqlite',
+          database: ':memory:',
+          entities: [User],
+          synchronize: true,
+          dropSchema: true,
         }),
         UsersModule,
       ],
     })
-    .overrideProvider(UserRepository)
-    .useValue(mockUserRepo)
-    .compile();
+      .overrideProvider(UserRepository)
+      .useValue(mockUserRepo)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -79,7 +79,11 @@ describe('UsersController (e2e)', () => {
 
   it('/users/:id (PUT)', () => {
     const dto = { name: 'Updated' };
-    mockUserRepo.update.mockResolvedValue({ id: '1', name: 'Updated', phone: '123' });
+    mockUserRepo.update.mockResolvedValue({
+      id: '1',
+      name: 'Updated',
+      phone: '123',
+    });
     return request(app.getHttpServer())
       .put('/users/1')
       .send(dto)
@@ -91,8 +95,6 @@ describe('UsersController (e2e)', () => {
 
   it('/users/:id (DELETE)', () => {
     mockUserRepo.softDelete.mockResolvedValue(undefined);
-    return request(app.getHttpServer())
-      .delete('/users/1')
-      .expect(204);
+    return request(app.getHttpServer()).delete('/users/1').expect(204);
   });
 });

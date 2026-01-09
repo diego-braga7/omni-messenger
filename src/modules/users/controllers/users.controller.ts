@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -21,10 +31,10 @@ export class UsersController {
         value: {
           name: 'João Silva',
           phone: '5511999999999',
-          email: 'joao@example.com'
-        }
-      }
-    }
+          email: 'joao@example.com',
+        },
+      },
+    },
   })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);

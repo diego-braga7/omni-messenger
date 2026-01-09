@@ -20,7 +20,7 @@ import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    HttpModule, 
+    HttpModule,
     ConfigModule,
     TypeOrmModule.forFeature([Message, MessageTemplate, ZApiReturn]),
     forwardRef(() => RabbitmqModule),
