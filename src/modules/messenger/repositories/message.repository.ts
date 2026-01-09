@@ -17,7 +17,10 @@ export class MessageRepository {
   }
 
   async findById(id: string): Promise<Message | null> {
-    return this.repo.findOne({ where: { id } });
+    return this.repo.findOne({ 
+      where: { id },
+      relations: ['zApiReturn']
+    });
   }
 
   async updateStatus(id: string, status: MessageStatus, externalId?: string): Promise<void> {
@@ -29,6 +32,9 @@ export class MessageRepository {
   }
 
   async findAll(): Promise<Message[]> {
-    return this.repo.find({ order: { createdAt: 'DESC' } });
+    return this.repo.find({ 
+      order: { createdAt: 'DESC' },
+      relations: ['zApiReturn']
+    });
   }
 }

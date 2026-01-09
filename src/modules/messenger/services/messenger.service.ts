@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common'
 import { MessageRepository } from '../repositories/message.repository';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { MessageTemplateRepository } from '../repositories/message-template.repository';
+import { ZApiReturnRepository } from '../repositories/z-api-return.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { SendTextDto } from '../dto/send-text.dto';
 import { SendDocumentDto } from '../dto/send-document.dto';
@@ -19,6 +20,7 @@ export class MessengerService {
     private readonly messageRepo: MessageRepository,
     private readonly userRepo: UserRepository,
     private readonly templateRepo: MessageTemplateRepository,
+    private readonly zApiReturnRepo: ZApiReturnRepository,
     private readonly rabbitmqService: RabbitmqService,
     @Inject(MESSENGER_PROVIDER)
     private readonly provider: IMessengerProvider,
@@ -123,6 +125,13 @@ export class MessengerService {
         MessageStatus.SENT, 
         result?.messageId || 'external-id-placeholder'
       );
+
+      if (result?.zaapId && result?.id) {
+        await this.zApiReturnRepo.saveReturn(message.id, result.zaapId, result.id);
+      } else {
+        this.logger.warn(`Z-API response missing zaapId or id for message ${message.id}`, result);
+      }
+
       this.logger.log(`Message ${messageId} sent successfully`);
     } catch (error) {
       this.logger.error(`Failed to send message ${messageId}`, error);
@@ -175,5 +184,13 @@ export class MessengerService {
 
   async findAll() {
     return this.messageRepo.findAll();
+  }
+
+  async findOne(id: string) {
+    const message = await this.messageRepo.findById(id);
+    if (!message) {
+      throw new BadRequestException('Message not found');
+    }
+    return message;
   }
 }

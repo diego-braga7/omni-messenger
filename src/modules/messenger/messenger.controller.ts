@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Inject, HttpCode, HttpStatus, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, Inject, HttpCode, HttpStatus, Get, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { MessengerService } from './services/messenger.service';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
 import { BulkSendDto } from './dto/bulk-send.dto';
+import { Message } from './entities/message.entity';
 
 @ApiTags('Messenger')
 @Controller('messenger')
@@ -54,5 +55,14 @@ export class MessengerController {
   @ApiOperation({ summary: 'Listar histórico de mensagens' })
   async getHistory() {
     return this.messengerService.findAll();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar mensagem por ID' })
+  @ApiParam({ name: 'id', description: 'ID da mensagem' })
+  @ApiResponse({ status: 200, description: 'Mensagem encontrada', type: Message })
+  @ApiResponse({ status: 404, description: 'Mensagem não encontrada' })
+  async getMessage(@Param('id') id: string) {
+    return this.messengerService.findOne(id);
   }
 }

@@ -12,6 +12,7 @@ describe('MessengerController', () => {
     sendText: jest.fn(),
     sendDocument: jest.fn(),
     findAll: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -66,6 +67,15 @@ describe('MessengerController', () => {
       mockService.findAll.mockResolvedValue(result);
 
       expect(await controller.getHistory()).toBe(result);
+    });
+  });
+
+  describe('getMessage', () => {
+    it('should return a single message', async () => {
+      const message = { id: '1', content: 'hello' };
+      mockService.findOne.mockResolvedValue(message);
+      expect(await controller.getMessage('1')).toEqual(message);
+      expect(mockService.findOne).toHaveBeenCalledWith('1');
     });
   });
 });

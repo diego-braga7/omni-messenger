@@ -3,6 +3,7 @@ import { MessengerService } from './messenger.service';
 import { MessageRepository } from '../repositories/message.repository';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { MessageTemplateRepository } from '../repositories/message-template.repository';
+import { ZApiReturnRepository } from '../repositories/z-api-return.repository';
 import { RabbitmqService } from '../../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from '../messenger.constants';
 import { MessageStatus } from '../enums/message-status.enum';
@@ -14,6 +15,7 @@ describe('MessengerService', () => {
   let messageRepo: MessageRepository;
   let userRepo: UserRepository;
   let templateRepo: MessageTemplateRepository;
+  let zApiReturnRepo: ZApiReturnRepository;
   let rabbitmqService: RabbitmqService;
   let provider: any;
 
@@ -33,6 +35,10 @@ describe('MessengerService', () => {
     findById: jest.fn(),
   };
 
+  const mockZApiReturnRepo = {
+    saveReturn: jest.fn(),
+  };
+
   const mockRabbitmqService = {
     sendMessage: jest.fn(),
   };
@@ -49,6 +55,7 @@ describe('MessengerService', () => {
         { provide: MessageRepository, useValue: mockMessageRepo },
         { provide: UserRepository, useValue: mockUserRepo },
         { provide: MessageTemplateRepository, useValue: mockTemplateRepo },
+        { provide: ZApiReturnRepository, useValue: mockZApiReturnRepo },
         { provide: RabbitmqService, useValue: mockRabbitmqService },
         { provide: MESSENGER_PROVIDER, useValue: mockProvider },
       ],
@@ -58,6 +65,7 @@ describe('MessengerService', () => {
     messageRepo = module.get<MessageRepository>(MessageRepository);
     userRepo = module.get<UserRepository>(UserRepository);
     templateRepo = module.get<MessageTemplateRepository>(MessageTemplateRepository);
+    zApiReturnRepo = module.get<ZApiReturnRepository>(ZApiReturnRepository);
     rabbitmqService = module.get<RabbitmqService>(RabbitmqService);
     provider = module.get(MESSENGER_PROVIDER);
   });
@@ -153,23 +161,37 @@ describe('MessengerService', () => {
         caption: 'cap'
       };
       mockMessageRepo.findById.mockResolvedValue(message);
-      mockProvider.sendDocument.mockResolvedValue({ messageId: 'ext-2' });
+      mockProvider.sendDocument.mockResolvedValue({ messageId: 'ext-2', zaapId: 'z2', id: 'id2' });
 
       await service.processMessage('1');
 
       expect(mockProvider.sendDocument).toHaveBeenCalledWith('123', 'url', 'file', 'pdf', { caption: 'cap' });
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-2');
+      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith('1', 'z2', 'id2');
     });
 
     it('should send text message via provider and update status to SENT', async () => {
       const message = { id: '1', to: '123', content: 'hello', type: MessageType.TEXT, status: MessageStatus.QUEUED };
       mockMessageRepo.findById.mockResolvedValue(message);
-      mockProvider.sendText.mockResolvedValue({ messageId: 'ext-1' });
+      mockProvider.sendText.mockResolvedValue({ messageId: 'ext-1', zaapId: 'z1', id: 'id1' });
 
       await service.processMessage('1');
 
       expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-1');
+      expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith('1', 'z1', 'id1');
+    });
+
+    it('should log warning if Z-API response is missing IDs', async () => {
+      const message = { id: '1', to: '123', content: 'hello', type: MessageType.TEXT, status: MessageStatus.QUEUED };
+      mockMessageRepo.findById.mockResolvedValue(message);
+      mockProvider.sendText.mockResolvedValue({ messageId: 'ext-1' }); // missing zaapId/id
+
+      await service.processMessage('1');
+
+      expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
+      expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith('1', MessageStatus.SENT, 'ext-1');
+      expect(mockZApiReturnRepo.saveReturn).not.toHaveBeenCalled();
     });
 
     it('should fail and update status to FAILED', async () => {

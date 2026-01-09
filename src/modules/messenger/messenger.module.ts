@@ -10,8 +10,10 @@ import { MessengerService } from './services/messenger.service';
 import { TemplateService } from './services/template.service';
 import { MessageRepository } from './repositories/message.repository';
 import { MessageTemplateRepository } from './repositories/message-template.repository';
+import { ZApiReturnRepository } from './repositories/z-api-return.repository';
 import { Message } from './entities/message.entity';
 import { MessageTemplate } from './entities/message-template.entity';
+import { ZApiReturn } from './entities/z-api-return.entity';
 import { RabbitmqModule } from '../rabbitmq/rabbitmq.module';
 import { MessengerConsumer } from './messenger.consumer';
 import { UsersModule } from '../users/users.module';
@@ -20,7 +22,7 @@ import { UsersModule } from '../users/users.module';
   imports: [
     HttpModule, 
     ConfigModule,
-    TypeOrmModule.forFeature([Message, MessageTemplate]),
+    TypeOrmModule.forFeature([Message, MessageTemplate, ZApiReturn]),
     forwardRef(() => RabbitmqModule),
     UsersModule,
   ],
@@ -35,6 +37,7 @@ import { UsersModule } from '../users/users.module';
     TemplateService,
     MessageRepository,
     MessageTemplateRepository,
+    ZApiReturnRepository,
   ],
   exports: [MESSENGER_PROVIDER, MessengerService],
 })

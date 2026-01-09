@@ -96,3 +96,48 @@ npm run test
 Os testes validam:
 - Se o Controller chama os métodos corretos do Provider.
 - Se o Provider constrói as requisições HTTP corretamente para a Z-API.
+
+## Registro de Retornos (Z-API)
+
+Para garantir rastreabilidade e auditoria, o sistema persiste automaticamente os dados de retorno da Z-API em uma tabela dedicada.
+
+### Esquema da Tabela (`z_api_returns`)
+
+A tabela possui relacionamento 1:1 com a tabela de mensagens.
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `message_id` | UUID (PK, FK) | Identificador da mensagem (Chave Estrangeira para `messages.id`) |
+| `zaap_id` | String | ID da mensagem no sistema da Z-API |
+| `id` | String | ID interno do retorno da Z-API |
+| `created_at` | Timestamp | Data de criação do registro |
+| `updated_at` | Timestamp | Data da última atualização |
+
+*Índices foram criados nas colunas `zaap_id` e `id` para otimizar buscas.*
+
+### Fluxo de Trabalho
+
+1. O serviço envia a mensagem para a Z-API.
+2. Ao receber a confirmação de envio (sucesso), o sistema extrai `zaapId` e `id` da resposta.
+3. Um registro é criado na tabela `z_api_returns` vinculado à mensagem original.
+4. Em caso de falha no envio ou resposta incompleta, o erro é logado e o registro não é criado (ou criado parcialmente se aplicável, mas neste caso validamos a presença dos IDs).
+
+### Consultando os Dados
+
+Ao buscar uma mensagem pelo endpoint `GET /messenger/:id`, os dados do retorno Z-API são incluídos automaticamente na resposta se existirem.
+
+**Exemplo de Resposta:**
+
+```json
+{
+  "id": "uuid-da-mensagem",
+  "status": "SENT",
+  "content": "Olá",
+  "zApiReturn": {
+    "messageId": "uuid-da-mensagem",
+    "zaapId": "382828282828",
+    "id": "ADF8F7F7F7F7F7",
+    "createdAt": "2023-10-27T10:00:00.000Z"
+  }
+}
+```

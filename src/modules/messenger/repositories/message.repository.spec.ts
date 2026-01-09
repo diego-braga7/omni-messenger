@@ -58,7 +58,10 @@ describe('MessageRepository', () => {
 
       const result = await repository.findById('1');
       expect(result).toEqual(message);
-      expect(mockTypeOrmRepo.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockTypeOrmRepo.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+        relations: ['zApiReturn'],
+      });
     });
   });
 
@@ -69,7 +72,10 @@ describe('MessageRepository', () => {
 
       const result = await repository.findAll();
       expect(result).toEqual(messages);
-      expect(mockTypeOrmRepo.find).toHaveBeenCalledWith({ order: { createdAt: 'DESC' } });
+      expect(mockTypeOrmRepo.find).toHaveBeenCalledWith({
+        order: { createdAt: 'DESC' },
+        relations: ['zApiReturn'],
+      });
     });
   });
 

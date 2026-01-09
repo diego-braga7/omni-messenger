@@ -6,6 +6,8 @@ services:
     container_name: omni-messenger-app
     ports:
       - '3000:3000'
+    env_file:
+      - .env
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
