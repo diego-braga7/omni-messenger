@@ -1,0 +1,53 @@
+# Regras da IDE e Padrões de Projeto
+
+## Tech Stack
+- **Framework**: NestJS
+- **Language**: TypeScript
+- **Database**: PostgreSQL
+- **ORM**: TypeORM
+- **Messaging**: RabbitMQ
+- **Containerization**: Docker & Docker Compose
+- **Testing**: Jest (Unit & E2E)
+
+## Padrões de Código
+
+### NestJS
+- Utilize **Dependency Injection** para todos os serviços e repositórios.
+- Mantenha a estrutura de módulos (`*.module.ts`).
+- Controllers devem apenas lidar com HTTP (request/response) e delegar lógica para Services.
+- Services devem conter a regra de negócios.
+- Utilize DTOs (`*.dto.ts`) com `class-validator` para validação de entrada.
+- Utilize Entities (`*.entity.ts`) para modelagem de banco de dados.
+
+### Nomenclatura
+- **Arquivos**: kebab-case (ex: `user.controller.ts`, `create-user.dto.ts`).
+- **Classes**: PascalCase (ex: `UserController`, `CreateUserDto`).
+- **Variáveis/Métodos**: camelCase (ex: `createUser`, `userId`).
+- **Interfaces**: PascalCase, preferencialmente sem prefixo 'I' (ex: `User`, não `IUser`), exceto se conflitar com classes.
+
+### Arquitetura
+- **Repository Pattern**: Utilize repositórios para acesso a dados. Se customizados, estenda `Repository<T>`.
+- **Messaging**: Utilize `RabbitmqService` para publicar mensagens e Consumers com `@MessagePattern` ou `@EventPattern` para consumir.
+- **Error Handling**: Utilize Exception Filters globais ou `HttpException` nos serviços.
+
+### Docker
+- `Dockerfile` deve usar multi-stage builds (base, deps, builder, runner).
+- `docker-compose.yml` deve definir serviços, redes e volumes. Use healthchecks para dependências (postgres, rabbitmq).
+
+### Testes
+- Testes unitários (`.spec.ts`) próximos aos arquivos testados.
+- Testes E2E na pasta `test/`.
+- Use mocks para dependências externas nos testes unitários.
+
+## Regras de Linting e Formatação
+- Siga as regras do `eslint` e `prettier` configurados no projeto.
+- Não deixe `console.log` no código de produção (use `Logger` do NestJS).
+- Imports devem ser organizados (NestJS core -> Third party -> Local).
+
+## Fluxo de Trabalho
+1. Analise o problema.
+2. Crie/Atualize DTOs e Entidades se necessário.
+3. Implemente a lógica no Service.
+4. Exponha no Controller.
+5. Adicione Testes.
+6. Verifique se o Docker build passa.

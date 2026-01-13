@@ -1,0 +1,735 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "summary": "Criar novo usuário",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Exemplo de criação",
+                  "value": {
+                    "name": "João Silva",
+                    "phone": "5511999999999",
+                    "email": "joao@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso."
+          },
+          "400": {
+            "description": "Dados inválidos."
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "summary": "Listar todos usuários",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "summary": "Buscar usuário por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário encontrado."
+          },
+          "404": {
+            "description": "Usuário não encontrado."
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "put": {
+        "operationId": "UsersController_update",
+        "summary": "Atualizar usuário",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado."
+          },
+          "404": {
+            "description": "Usuário não encontrado."
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "summary": "Remover usuário (Soft Delete)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuário removido."
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/messenger/text": {
+      "post": {
+        "operationId": "MessengerController_sendText",
+        "summary": "Enviar mensagem de texto (Assíncrono)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendTextDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Mensagem enfileirada para envio"
+          },
+          "400": {
+            "description": "Erro de validação (ex: template incompatível)"
+          }
+        },
+        "tags": [
+          "Messenger"
+        ]
+      }
+    },
+    "/messenger/document": {
+      "post": {
+        "operationId": "MessengerController_sendDocument",
+        "summary": "Enviar documento (Assíncrono)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Documento enfileirado para envio"
+          },
+          "400": {
+            "description": "Erro de validação (ex: template incompatível)"
+          }
+        },
+        "tags": [
+          "Messenger"
+        ]
+      }
+    },
+    "/messenger/bulk-send": {
+      "post": {
+        "operationId": "MessengerController_sendBulk",
+        "summary": "Envio em massa com rate limiting (30 msgs/10s)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSendDto"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Exemplo básico",
+                  "value": {
+                    "phones": [
+                      "5511999999999",
+                      "5511988888888"
+                    ],
+                    "userIds": [
+                      "uuid-user-1",
+                      "uuid-user-2"
+                    ],
+                    "message": "Olá, esta é uma mensagem em massa!",
+                    "modelId": "optional-model-uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Envio em massa iniciado"
+          }
+        },
+        "tags": [
+          "Messenger"
+        ]
+      }
+    },
+    "/messenger/history": {
+      "get": {
+        "operationId": "MessengerController_getHistory",
+        "summary": "Listar histórico de mensagens",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Messenger"
+        ]
+      }
+    },
+    "/messenger/{id}": {
+      "get": {
+        "operationId": "MessengerController_getMessage",
+        "summary": "Buscar mensagem por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da mensagem",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensagem encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Mensagem não encontrada"
+          }
+        },
+        "tags": [
+          "Messenger"
+        ]
+      }
+    },
+    "/templates": {
+      "post": {
+        "operationId": "TemplateController_create",
+        "summary": "Criar novo modelo de mensagem",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Templates"
+        ]
+      },
+      "get": {
+        "operationId": "TemplateController_findAll",
+        "summary": "Listar todos os modelos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Templates"
+        ]
+      }
+    },
+    "/templates/{id}": {
+      "get": {
+        "operationId": "TemplateController_findOne",
+        "summary": "Buscar modelo por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Templates"
+        ]
+      },
+      "patch": {
+        "operationId": "TemplateController_update",
+        "summary": "Atualizar modelo",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Templates"
+        ]
+      },
+      "delete": {
+        "operationId": "TemplateController_remove",
+        "summary": "Remover modelo",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Templates"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Omni Messenger API",
+    "description": "API para envio de mensagens via múltiplos canais (Z-API, etc)",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Messenger",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do usuário"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Telefone do usuário"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email do usuário"
+          }
+        },
+        "required": [
+          "phone"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do usuário"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Telefone do usuário"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email do usuário"
+          }
+        }
+      },
+      "SendTextDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "5511999999999",
+            "description": "Número do destinatário com DDI e DDD, sem máscara"
+          },
+          "message": {
+            "type": "string",
+            "example": "Olá, mundo!",
+            "description": "Mensagem de texto a ser enviada"
+          },
+          "delayMessage": {
+            "type": "number",
+            "example": 1,
+            "description": "Tempo de espera em segundos antes de enviar"
+          },
+          "delayTyping": {
+            "type": "number",
+            "example": 1,
+            "description": "Tempo em segundos que aparecerá \"Digitando...\""
+          },
+          "modelId": {
+            "type": "string",
+            "example": "uuid-do-modelo",
+            "description": "ID do modelo de mensagem (obrigatório para novos fluxos)"
+          }
+        },
+        "required": [
+          "phone",
+          "message"
+        ]
+      },
+      "SendDocumentDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "example": "5511999999999",
+            "description": "Número do destinatário com DDI e DDD, sem máscara"
+          },
+          "document": {
+            "type": "string",
+            "example": "https://example.com/file.pdf",
+            "description": "URL ou Base64 do documento"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "meu-arquivo",
+            "description": "Nome do arquivo (sem extensão)"
+          },
+          "extension": {
+            "type": "string",
+            "example": "pdf",
+            "description": "Extensão do arquivo (ex: pdf, png, docx)"
+          },
+          "caption": {
+            "type": "string",
+            "example": "Segue o documento solicitado",
+            "description": "Legenda do documento"
+          },
+          "delayMessage": {
+            "type": "number",
+            "example": 1,
+            "description": "Tempo de espera em segundos antes de enviar"
+          },
+          "modelId": {
+            "type": "string",
+            "example": "uuid-do-modelo",
+            "description": "ID do modelo de mensagem (obrigatório para novos fluxos)"
+          }
+        },
+        "required": [
+          "phone",
+          "document",
+          "fileName",
+          "extension"
+        ]
+      },
+      "BulkSendDto": {
+        "type": "object",
+        "properties": {
+          "phones": {
+            "description": "Lista de números de telefone",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userIds": {
+            "description": "Lista de IDs de usuários",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "Conteúdo da mensagem"
+          },
+          "modelId": {
+            "type": "string",
+            "description": "ID do template (Modelo)"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ZApiReturn": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "ID da mensagem (FK)",
+            "example": "uuid-v4"
+          },
+          "zaapId": {
+            "type": "string",
+            "description": "ID da mensagem na Z-API",
+            "example": "328328238"
+          },
+          "id": {
+            "type": "string",
+            "description": "ID interno do retorno Z-API",
+            "example": "AD7S8D7S8D7"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "messageId",
+          "zaapId",
+          "id",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-v4"
+          },
+          "to": {
+            "type": "string",
+            "example": "5511999999999"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "zApiReturn": {
+            "$ref": "#/components/schemas/ZApiReturn"
+          },
+          "content": {
+            "type": "string",
+            "example": "Olá, mundo!"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "DOCUMENT"
+            ],
+            "example": "TEXT"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "QUEUED",
+              "SENT",
+              "FAILED"
+            ],
+            "example": "PENDING"
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true
+          },
+          "templateId": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "extension": {
+            "type": "string",
+            "nullable": true
+          },
+          "caption": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "to",
+          "userId",
+          "content",
+          "type",
+          "status",
+          "externalId",
+          "templateId",
+          "fileName",
+          "extension",
+          "caption",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Boas vindas"
+          },
+          "content": {
+            "type": "string",
+            "example": "Olá, seja bem vindo!"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "DOCUMENT"
+            ],
+            "example": "TEXT"
+          }
+        },
+        "required": [
+          "name",
+          "content",
+          "type"
+        ]
+      },
+      "UpdateTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Boas vindas"
+          },
+          "content": {
+            "type": "string",
+            "example": "Olá, seja bem vindo!"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "DOCUMENT"
+            ],
+            "example": "TEXT"
+          }
+        }
+      }
+    }
+  }
+}

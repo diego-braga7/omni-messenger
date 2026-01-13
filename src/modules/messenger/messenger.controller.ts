@@ -6,6 +6,8 @@ import {
   HttpStatus,
   Get,
   Param,
+  UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,14 +16,17 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { MessengerService } from './services/messenger.service';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
 import { BulkSendDto } from './dto/bulk-send.dto';
 import { Message } from './entities/message.entity';
+import { DocumentValidationPipe } from './pipes/document-validation.pipe';
 
 @ApiTags('Messenger')
 @Controller('messenger')
+@UseGuards(ThrottlerGuard)
 export class MessengerController {
   constructor(private readonly messengerService: MessengerService) {}
 
@@ -45,6 +50,7 @@ export class MessengerController {
     description: 'Erro de validação (ex: template incompatível)',
   })
   @HttpCode(HttpStatus.ACCEPTED)
+  @UsePipes(new DocumentValidationPipe())
   async sendDocument(@Body() dto: SendDocumentDto) {
     return this.messengerService.sendDocument(dto);
   }
