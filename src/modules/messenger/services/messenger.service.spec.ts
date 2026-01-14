@@ -194,6 +194,47 @@ describe('MessengerService', () => {
         }),
       );
     });
+
+    it('should use filename from template when DTO filename is not provided', async () => {
+      const dto = {
+        phone: '123',
+        modelId: 'tpl-2',
+      } as any;
+      const user = { id: 'u1', phone: '123' };
+      const template = {
+        id: 'tpl-2',
+        type: MessageType.DOCUMENT,
+        content: 'http://doc-from-template.com',
+        extension: 'pdf',
+        filename: 'template-file',
+      } as any;
+      const message = {
+        id: '2',
+        to: dto.phone,
+        content: template.content,
+        type: MessageType.DOCUMENT,
+        fileName: template.filename,
+        extension: template.extension,
+        status: MessageStatus.PENDING,
+        userId: user.id,
+        templateId: template.id,
+      };
+
+      mockUserRepo.findOrCreate.mockResolvedValue(user);
+      mockTemplateRepo.findById.mockResolvedValue(template);
+      mockMessageRepo.create.mockResolvedValue(message);
+
+      await service.sendDocument(dto);
+
+      expect(mockTemplateRepo.findById).toHaveBeenCalledWith(dto.modelId);
+      expect(mockMessageRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: template.content,
+          extension: template.extension,
+          fileName: template.filename,
+        }),
+      );
+    });
   });
 
   describe('processMessage', () => {

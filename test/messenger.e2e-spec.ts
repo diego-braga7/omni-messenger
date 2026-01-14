@@ -121,4 +121,20 @@ describe('MessengerController (e2e)', () => {
       .send(dto)
       .expect(201);
   });
+
+  it('/templates (POST) with DOCUMENT type and filename', () => {
+    const dto = {
+      name: 'Doc Template',
+      content: 'https://example.com/file.pdf',
+      type: 'DOCUMENT',
+      filename: 'meu-arquivo',
+      extension: 'pdf',
+    };
+    mockTemplateRepo.create.mockResolvedValue({ id: '2', ...dto });
+
+    return request(app.getHttpServer())
+      .post('/templates')
+      .send(dto)
+      .expect(201);
+  });
 });

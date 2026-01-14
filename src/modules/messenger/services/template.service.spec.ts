@@ -44,6 +44,21 @@ describe('TemplateService', () => {
       expect(result).toEqual({ id: '1', ...dto });
       expect(mockRepository.create).toHaveBeenCalledWith(dto);
     });
+
+    it('should create a DOCUMENT template with filename and extension', async () => {
+      const dto: CreateTemplateDto = {
+        name: 'Doc Template',
+        content: 'https://example.com/file.pdf',
+        type: MessageType.DOCUMENT,
+        filename: 'meu-arquivo',
+        extension: 'pdf',
+      } as any;
+      mockRepository.create.mockResolvedValue({ id: '2', ...dto });
+
+      const result = await service.create(dto);
+      expect(result).toEqual({ id: '2', ...dto });
+      expect(mockRepository.create).toHaveBeenCalledWith(dto);
+    });
   });
 
   describe('findOne', () => {

@@ -23,6 +23,8 @@ ENV NODE_ENV production
 COPY --from=builder /app/dist ./dist
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 3000
 
@@ -30,4 +32,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget --quiet --tries=1 --spider http://127.0.0.1:3000/ || exit 1
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["npm", "run", "start:prod"]

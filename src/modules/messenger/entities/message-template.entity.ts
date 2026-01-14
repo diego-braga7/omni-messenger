@@ -20,6 +20,9 @@ export class MessageTemplate {
   @Column('text')
   content: string;
 
+  @Column({ name: 'filename', nullable: true })
+  filename: string;
+
   @Column({ nullable: true })
   extension: string;
 

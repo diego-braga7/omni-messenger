@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MessageType } from '../enums/message-type.enum';
-import { IsString, IsEnum, IsNotEmpty, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsNotEmpty,
+  ValidateIf,
+  Matches,
+} from 'class-validator';
 
 export class CreateTemplateDto {
   @ApiProperty({ example: 'Boas vindas' })
@@ -16,6 +22,18 @@ export class CreateTemplateDto {
   @ApiProperty({ enum: MessageType, example: MessageType.TEXT })
   @IsEnum(MessageType)
   type: MessageType;
+
+  @ApiPropertyOptional({
+    example: 'meu-arquivo',
+    description:
+      'Nome do arquivo (sem extensão). Opcional para templates DOCUMENT.',
+  })
+  @ValidateIf(
+    (o) => o.type === MessageType.DOCUMENT && o.filename !== undefined,
+  )
+  @IsString()
+  @Matches(/^[^\/\\:*?"<>|]{1,255}$/)
+  filename?: string;
 
   @ApiPropertyOptional({
     example: 'pdf',

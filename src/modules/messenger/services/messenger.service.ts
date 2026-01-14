@@ -72,6 +72,7 @@ export class MessengerService {
 
     let documentContent = dto.document;
     let extension = dto.extension;
+    let fileName = dto.fileName;
 
     // 2. Validate Template if provided
     if (dto.modelId) {
@@ -92,6 +93,9 @@ export class MessengerService {
       if (!extension) {
         extension = template.extension;
       }
+      if (!fileName && (template as any).filename) {
+        fileName = (template as any).filename;
+      }
     }
 
     if (!documentContent) {
@@ -106,7 +110,7 @@ export class MessengerService {
       to: dto.phone,
       content: documentContent,
       type: MessageType.DOCUMENT,
-      fileName: dto.fileName || 'document', // Default filename if not provided
+      fileName: fileName || 'document',
       extension: extension,
       caption: dto.caption,
       status: MessageStatus.PENDING,

@@ -15,14 +15,15 @@
     "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
-    "test:dev": "jest --runInBand --maxWorkers=50%",
+    "test:dev": "jest --runInBand",
     "test:full": "npm test && npm run test:e2e",
     "check:dev": "npm run lint:check && npm run test:dev",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "typeorm"
+    "typeorm": "typeorm",
+    "migration:run": "node -r ts-node/register -r tsconfig-paths/register node_modules/typeorm/cli.js migration:run -d src/config/data-source.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
