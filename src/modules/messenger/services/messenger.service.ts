@@ -70,6 +70,9 @@ export class MessengerService {
     // 1. Find or Create User
     const user = await this.userRepo.findOrCreate(dto.phone);
 
+    let documentContent = dto.document;
+    let extension = dto.extension;
+
     // 2. Validate Template if provided
     if (dto.modelId) {
       const template = await this.templateRepo.findById(dto.modelId);
@@ -81,14 +84,30 @@ export class MessengerService {
           'Template type mismatch. Expected DOCUMENT.',
         );
       }
+      // If document not provided in DTO, use from template
+      if (!documentContent) {
+        documentContent = template.content;
+      }
+      // If extension not provided in DTO, use from template
+      if (!extension) {
+        extension = template.extension;
+      }
+    }
+
+    if (!documentContent) {
+      throw new BadRequestException('Document content is required');
+    }
+
+    if (!extension) {
+      throw new BadRequestException('Extension is required');
     }
 
     const message = await this.messageRepo.create({
       to: dto.phone,
-      content: dto.document,
+      content: documentContent,
       type: MessageType.DOCUMENT,
-      fileName: dto.fileName,
-      extension: dto.extension,
+      fileName: dto.fileName || 'document', // Default filename if not provided
+      extension: extension,
       caption: dto.caption,
       status: MessageStatus.PENDING,
       userId: user.id,

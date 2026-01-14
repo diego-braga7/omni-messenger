@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'omni_messenger',
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
+  entities: ['src/**/*.entity{.ts,.js}'],
+  migrations: ['src/database/migrations/*{.ts,.js}'],
   synchronize: false,
 });

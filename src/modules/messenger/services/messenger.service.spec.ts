@@ -154,6 +154,46 @@ describe('MessengerService', () => {
         MessageStatus.QUEUED,
       );
     });
+
+    it('should use extension from template if not provided in DTO', async () => {
+      const dto = {
+        phone: '123',
+        modelId: 'tpl-1',
+        fileName: 'doc',
+      };
+      const user = { id: 'u1', phone: '123' };
+      const template = {
+        id: 'tpl-1',
+        type: MessageType.DOCUMENT,
+        content: 'http://doc.com',
+        extension: 'pdf',
+      };
+      const message = {
+        id: '1',
+        to: dto.phone,
+        content: template.content,
+        type: MessageType.DOCUMENT,
+        fileName: dto.fileName,
+        extension: template.extension,
+        status: MessageStatus.PENDING,
+        userId: user.id,
+        templateId: template.id,
+      };
+
+      mockUserRepo.findOrCreate.mockResolvedValue(user);
+      mockTemplateRepo.findById.mockResolvedValue(template);
+      mockMessageRepo.create.mockResolvedValue(message);
+
+      await service.sendDocument(dto);
+
+      expect(mockTemplateRepo.findById).toHaveBeenCalledWith(dto.modelId);
+      expect(mockMessageRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: template.content,
+          extension: template.extension,
+        }),
+      );
+    });
   });
 
   describe('processMessage', () => {

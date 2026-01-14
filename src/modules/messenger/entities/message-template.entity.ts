@@ -20,6 +20,9 @@ export class MessageTemplate {
   @Column('text')
   content: string;
 
+  @Column({ nullable: true })
+  extension: string;
+
   @Column({
     type: 'enum',
     enum: MessageType,

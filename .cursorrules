@@ -51,3 +51,12 @@
 4. Exponha no Controller.
 5. Adicione Testes.
 6. Verifique se o Docker build passa.
+
+## WSL Stability Rules
+- **Environment**: WSL (Windows Subsystem for Linux)
+- **Constraint**: Avoid heavy concurrent operations that cause connection failures (Error Wsl/Service/0x8007274c).
+- **Preferred Commands**:
+  - Use `npm run check:dev` for linting and subset testing.
+  - Use `npm run test:dev` for running tests in band with limited workers.
+  - **AVOID** running `npm run lint && npm run test` or `npm test` without arguments if possible.
+  - Trust GitHub Actions CI for full test suite execution.

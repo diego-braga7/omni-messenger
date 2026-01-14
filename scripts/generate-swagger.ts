@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ThrottlerModule } from '@nestjs/throttler';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,7 +20,14 @@ import { TemplateService } from '../src/modules/messenger/services/template.serv
 console.log('Starting lightweight swagger generation...');
 
 @Module({
-  imports: [],
+  imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
+  ],
   controllers: [
     UsersController,
     MessengerController,

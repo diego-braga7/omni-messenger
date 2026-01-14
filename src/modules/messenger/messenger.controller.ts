@@ -50,6 +50,29 @@ export class MessengerController {
     description: 'Erro de validação (ex: template incompatível)',
   })
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiBody({
+    type: SendDocumentDto,
+    examples: {
+      default: {
+        summary: 'Envio com URL direta',
+        value: {
+          phone: '5511999999999',
+          document: 'https://example.com/file.pdf',
+          fileName: 'meu-arquivo',
+          extension: 'pdf',
+          caption: 'Segue o documento solicitado',
+        },
+      },
+      withModel: {
+        summary: 'Envio com modelo pré-definido',
+        value: {
+          phone: '5511999999999',
+          modelId: 'uuid-do-modelo',
+          caption: 'Segue o documento do modelo',
+        },
+      },
+    },
+  })
   @UsePipes(new DocumentValidationPipe())
   async sendDocument(@Body() dto: SendDocumentDto) {
     return this.messengerService.sendDocument(dto);

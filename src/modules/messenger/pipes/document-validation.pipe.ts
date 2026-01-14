@@ -60,7 +60,12 @@ export class DocumentValidationPipe implements PipeTransform {
   };
 
   async transform(value: SendDocumentDto) {
-    if (!value || !value.document) {
+    if (!value) {
+      return value;
+    }
+
+    // Skip validation if document is not provided (it might be filled from template later)
+    if (!value.document) {
       return value;
     }
 
@@ -78,7 +83,10 @@ export class DocumentValidationPipe implements PipeTransform {
 
     // 2. Validate URL
     if (this.isUrl(document)) {
-      await this.validateUrl(document, cleanExt);
+      const validatedExt = await this.validateUrl(document, cleanExt);
+      if (!value.extension && validatedExt) {
+        value.extension = validatedExt;
+      }
     }
 
     return value;
@@ -93,12 +101,18 @@ export class DocumentValidationPipe implements PipeTransform {
     }
   }
 
-  private async validateUrl(url: string, expectedExt: string) {
+  private async validateUrl(
+    url: string,
+    expectedExt: string,
+  ): Promise<string | null> {
     try {
       // Use stream to avoid downloading large files entirely
       const response = await axios.get(url, {
         responseType: 'stream',
-        headers: { Range: 'bytes=0-4096' }, // Try to fetch only the first 4KB
+        headers: {
+          Range: 'bytes=0-4096',
+          'User-Agent': 'Wget/1.20', // Mimic wget to avoid HTML warning pages from some file sharing services
+        },
         timeout: 5000, // 5s timeout
       });
 
@@ -125,6 +139,8 @@ export class DocumentValidationPipe implements PipeTransform {
 
       // MIME check
       const contentType = headers['content-type'];
+      let finalExt = expectedExt;
+
       if (expectedExt && this.MIME_TYPES[expectedExt]) {
         const allowedMimes = this.MIME_TYPES[expectedExt];
         const isValidMime = allowedMimes.some((mime) =>
@@ -139,14 +155,16 @@ export class DocumentValidationPipe implements PipeTransform {
             `Invalid Content-Type: ${contentType}. Expected one of: ${allowedMimes.join(', ')}`,
           );
         }
+      } else if (!expectedExt) {
+        finalExt = this.inferExtensionFromMime(contentType) || '';
       }
 
       // Magic Number check
-      const magic = this.MAGIC_NUMBERS[expectedExt];
+      const magic = this.MAGIC_NUMBERS[finalExt];
       if (magic) {
         try {
           const chunk = await this.readFirstChunk(response.data);
-          this.validateMagicNumber(chunk, magic, expectedExt);
+          this.validateMagicNumber(chunk, magic, finalExt);
         } catch (e) {
           response.data.destroy();
           throw e;
@@ -157,6 +175,8 @@ export class DocumentValidationPipe implements PipeTransform {
       if (!response.data.destroyed) {
         response.data.destroy();
       }
+
+      return finalExt;
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
 
@@ -165,6 +185,17 @@ export class DocumentValidationPipe implements PipeTransform {
         `Failed to validate document: ${error.message}`,
       );
     }
+  }
+
+  private inferExtensionFromMime(contentType: string): string | null {
+    if (!contentType) return null;
+    const lowerType = contentType.toLowerCase();
+    for (const [ext, mimes] of Object.entries(this.MIME_TYPES)) {
+      if (mimes.some((mime) => lowerType.includes(mime))) {
+        return ext;
+      }
+    }
+    return null;
   }
 
   private readFirstChunk(stream: any): Promise<Buffer> {
@@ -176,11 +207,7 @@ export class DocumentValidationPipe implements PipeTransform {
     });
   }
 
-  private validateMagicNumber(
-    buffer: Buffer,
-    magic: number[],
-    ext: string,
-  ) {
+  private validateMagicNumber(buffer: Buffer, magic: number[], ext: string) {
     if (buffer.length < magic.length) {
       throw new BadRequestException('File is too short to be valid.');
     }

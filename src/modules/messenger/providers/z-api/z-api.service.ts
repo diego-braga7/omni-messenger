@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { IMessengerProvider, ISendDocumentOptions, ISendTextOptions } from '../../interfaces/messenger.interface';
+import {
+  IMessengerProvider,
+  ISendDocumentOptions,
+  ISendTextOptions,
+} from '../../interfaces/messenger.interface';
 
 @Injectable()
 export class ZApiProvider implements IMessengerProvider {
@@ -18,7 +22,8 @@ export class ZApiProvider implements IMessengerProvider {
   ) {
     this.instanceId = this.configService.get<string>('ZAPI_INSTANCE_ID') ?? '';
     this.token = this.configService.get<string>('ZAPI_TOKEN') ?? '';
-    this.clientToken = this.configService.get<string>('ZAPI_CLIENT_TOKEN') ?? '';
+    this.clientToken =
+      this.configService.get<string>('ZAPI_CLIENT_TOKEN') ?? '';
 
     if (!this.instanceId || !this.token || !this.clientToken) {
       this.logger.warn('Z-API credentials not fully configured');
@@ -32,7 +37,11 @@ export class ZApiProvider implements IMessengerProvider {
     };
   }
 
-  async sendText(to: string, message: string, options?: ISendTextOptions): Promise<any> {
+  async sendText(
+    to: string,
+    message: string,
+    options?: ISendTextOptions,
+  ): Promise<any> {
     const url = `${this.baseUrl}/${this.instanceId}/token/${this.token}/send-text`;
     const payload = {
       phone: to,
@@ -50,10 +59,13 @@ export class ZApiProvider implements IMessengerProvider {
         messageId: response.data.messageId,
         zaapId: response.data.zaapId,
         id: response.data.id,
-        ...response.data
+        ...response.data,
       };
     } catch (error) {
-      this.logger.error(`Error sending text via Z-API: ${error.message}`, error.response?.data);
+      this.logger.error(
+        `Error sending text via Z-API: ${error.message}`,
+        error.response?.data,
+      );
       throw error;
     }
   }
@@ -84,10 +96,13 @@ export class ZApiProvider implements IMessengerProvider {
         messageId: response.data.messageId,
         zaapId: response.data.zaapId,
         id: response.data.id,
-        ...response.data
+        ...response.data,
       };
     } catch (error) {
-      this.logger.error(`Error sending document via Z-API: ${error.message}`, error.response?.data);
+      this.logger.error(
+        `Error sending document via Z-API: ${error.message}`,
+        error.response?.data,
+      );
       throw error;
     }
   }

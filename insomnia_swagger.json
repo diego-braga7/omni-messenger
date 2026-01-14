@@ -175,6 +175,26 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SendDocumentDto"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Envio com URL direta",
+                  "value": {
+                    "phone": "5511999999999",
+                    "document": "https://example.com/file.pdf",
+                    "fileName": "meu-arquivo",
+                    "extension": "pdf",
+                    "caption": "Segue o documento solicitado"
+                  }
+                },
+                "withModel": {
+                  "summary": "Envio com modelo pré-definido",
+                  "value": {
+                    "phone": "5511999999999",
+                    "modelId": "uuid-do-modelo",
+                    "caption": "Segue o documento do modelo"
+                  }
+                }
               }
             }
           }
@@ -498,17 +518,17 @@
           "document": {
             "type": "string",
             "example": "https://example.com/file.pdf",
-            "description": "URL ou Base64 do documento"
+            "description": "URL ou Base64 do documento (Obrigatório se modelId não for informado)"
           },
           "fileName": {
             "type": "string",
             "example": "meu-arquivo",
-            "description": "Nome do arquivo (sem extensão)"
+            "description": "Nome do arquivo (sem extensão) (opcional)"
           },
           "extension": {
             "type": "string",
             "example": "pdf",
-            "description": "Extensão do arquivo (ex: pdf, png, docx)"
+            "description": "Extensão do arquivo (ex: pdf, png, docx) (opcional)"
           },
           "caption": {
             "type": "string",
@@ -527,10 +547,7 @@
           }
         },
         "required": [
-          "phone",
-          "document",
-          "fileName",
-          "extension"
+          "phone"
         ]
       },
       "BulkSendDto": {
@@ -701,6 +718,11 @@
               "DOCUMENT"
             ],
             "example": "TEXT"
+          },
+          "extension": {
+            "type": "string",
+            "example": "pdf",
+            "description": "Obrigatório se type for DOCUMENT"
           }
         },
         "required": [
@@ -727,6 +749,11 @@
               "DOCUMENT"
             ],
             "example": "TEXT"
+          },
+          "extension": {
+            "type": "string",
+            "example": "pdf",
+            "description": "Obrigatório se type for DOCUMENT"
           }
         }
       }

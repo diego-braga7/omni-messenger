@@ -1,45 +1,60 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsNumber, IsUUID } from 'class-validator';
 
 export class SendDocumentDto {
   @ApiProperty({
     example: '5511999999999',
     description: 'Número do destinatário com DDI e DDD, sem máscara',
   })
+  @IsString()
   phone: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'https://example.com/file.pdf',
-    description: 'URL ou Base64 do documento',
+    description:
+      'URL ou Base64 do documento (Obrigatório se modelId não for informado)',
   })
-  document: string;
+  @IsOptional()
+  @IsString()
+  document?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'meu-arquivo',
-    description: 'Nome do arquivo (sem extensão)',
+    description: 'Nome do arquivo (sem extensão) (opcional)',
   })
-  fileName: string;
+  @IsOptional()
+  @IsString()
+  fileName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'pdf',
-    description: 'Extensão do arquivo (ex: pdf, png, docx)',
+    description: 'Extensão do arquivo (ex: pdf, png, docx) (opcional)',
   })
-  extension: string;
+  @IsOptional()
+  @IsString()
+  extension?: string;
 
   @ApiPropertyOptional({
     example: 'Segue o documento solicitado',
     description: 'Legenda do documento',
   })
+  @IsOptional()
+  @IsString()
   caption?: string;
 
   @ApiPropertyOptional({
     example: 1,
     description: 'Tempo de espera em segundos antes de enviar',
   })
+  @IsOptional()
+  @IsNumber()
   delayMessage?: number;
 
   @ApiPropertyOptional({
     example: 'uuid-do-modelo',
     description: 'ID do modelo de mensagem (obrigatório para novos fluxos)',
   })
+  @IsOptional()
+  @IsUUID()
   modelId?: string;
 }
