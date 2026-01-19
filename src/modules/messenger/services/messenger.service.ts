@@ -16,6 +16,7 @@ import { MessageType } from '../enums/message-type.enum';
 import { MessageStatus } from '../enums/message-status.enum';
 import { MESSENGER_PROVIDER } from '../messenger.constants';
 import { IMessengerProvider } from '../interfaces/messenger.interface';
+import { RABBITMQ_EVENTS, BULK_SEND_CONFIG } from '../../../common/constants';
 
 @Injectable()
 export class MessengerService {
@@ -55,7 +56,7 @@ export class MessengerService {
       templateId: dto.modelId,
     });
 
-    await this.rabbitmqService.sendMessage('process_message', {
+    await this.rabbitmqService.sendMessage(RABBITMQ_EVENTS.PROCESS_MESSAGE, {
       messageId: message.id,
     });
 
@@ -118,7 +119,7 @@ export class MessengerService {
       templateId: dto.modelId,
     });
 
-    await this.rabbitmqService.sendMessage('process_message', {
+    await this.rabbitmqService.sendMessage(RABBITMQ_EVENTS.PROCESS_MESSAGE, {
       messageId: message.id,
     });
     await this.messageRepo.updateStatus(message.id, MessageStatus.QUEUED);
@@ -189,7 +190,7 @@ export class MessengerService {
     }
 
     const phoneList = Array.from(phones);
-    const chunks = this.chunkArray(phoneList, 30);
+    const chunks = this.chunkArray(phoneList, BULK_SEND_CONFIG.BATCH_SIZE);
 
     this.logger.log(
       `Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches.`,
@@ -210,7 +211,7 @@ export class MessengerService {
             this.logger.error(`Failed to queue bulk message to ${phone}`, e);
           }
         }
-      }, index * 10000); // 10 seconds interval
+      }, index * BULK_SEND_CONFIG.DELAY_MS); // 10 seconds delay between batches
     });
 
     return {

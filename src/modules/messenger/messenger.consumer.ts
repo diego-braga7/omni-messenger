@@ -6,7 +6,7 @@ import { MessengerService } from './services/messenger.service';
 export class MessengerConsumer {
   constructor(private readonly messengerService: MessengerService) {}
 
-  @EventPattern('process_message')
+  @EventPattern('process.message')
   async handleProcessMessage(
     @Payload() data: { messageId: string },
     @Ctx() context: RmqContext,

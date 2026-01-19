@@ -8,6 +8,7 @@ import { getTypeOrmConfig } from './config/typeorm.config';
 import { RabbitmqModule } from './modules/rabbitmq/rabbitmq.module';
 import { MessengerModule } from './modules/messenger/messenger.module';
 import { UsersModule } from './modules/users/users.module';
+import { THROTTLER_CONFIG } from './common/constants';
 
 @Module({
   imports: [
@@ -21,8 +22,8 @@ import { UsersModule } from './modules/users/users.module';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 10,
+        ttl: THROTTLER_CONFIG.TTL,
+        limit: THROTTLER_CONFIG.LIMIT,
       },
     ]),
     RabbitmqModule,

@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { RABBITMQ_QUEUE } from './common/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,7 +27,7 @@ async function bootstrap() {
       transport: Transport.RMQ,
       options: {
         urls: [rmqUri],
-        queue: 'main_queue',
+        queue: RABBITMQ_QUEUE,
         noAck: false,
         queueOptions: {
           durable: true,
