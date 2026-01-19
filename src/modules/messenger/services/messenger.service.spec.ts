@@ -284,7 +284,7 @@ describe('MessengerService', () => {
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
         '1',
         MessageStatus.SENT,
-        'ext-2',
+        'id2',
       );
       expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith(
         '1',
@@ -314,7 +314,7 @@ describe('MessengerService', () => {
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
         '1',
         MessageStatus.SENT,
-        'ext-1',
+        'id1',
       );
       expect(mockZApiReturnRepo.saveReturn).toHaveBeenCalledWith(
         '1',

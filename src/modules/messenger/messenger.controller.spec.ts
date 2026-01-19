@@ -4,6 +4,8 @@ import { MessengerService } from './services/messenger.service';
 import { SendTextDto } from './dto/send-text.dto';
 import { SendDocumentDto } from './dto/send-document.dto';
 
+import { ThrottlerGuard } from '@nestjs/throttler';
+
 describe('MessengerController', () => {
   let controller: MessengerController;
   let service: MessengerService;
@@ -24,7 +26,10 @@ describe('MessengerController', () => {
           useValue: mockService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<MessengerController>(MessengerController);
     service = module.get<MessengerService>(MessengerService);
