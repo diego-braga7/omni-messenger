@@ -1,10 +1,33 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+
+// Mock TypeORM to handle sqlite enum incompatibility
+jest.mock('typeorm', () => {
+  const actual = jest.requireActual('typeorm');
+  return {
+    ...actual,
+    Column: (typeOrOptions: any, options: any) => {
+      let finalTypeOrOptions = typeOrOptions;
+      if (
+        typeof typeOrOptions === 'object' &&
+        typeOrOptions !== null &&
+        typeOrOptions.type === 'enum'
+      ) {
+        finalTypeOrOptions = { ...typeOrOptions, type: 'simple-enum' };
+      }
+      return actual.Column(finalTypeOrOptions, options);
+    },
+  };
+});
+
 import { UsersModule } from './../src/modules/users/users.module';
 import { UserRepository } from './../src/modules/users/repositories/user.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './../src/modules/users/entities/user.entity';
+import { Message } from './../src/modules/messenger/entities/message.entity';
+import { MessageTemplate } from './../src/modules/messenger/entities/message-template.entity';
+import { ZApiReturn } from './../src/modules/messenger/entities/z-api-return.entity';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -23,7 +46,7 @@ describe('UsersController (e2e)', () => {
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [User],
+          entities: [User, Message, MessageTemplate, ZApiReturn],
           synchronize: true,
           dropSchema: true,
         }),
@@ -36,10 +59,12 @@ describe('UsersController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  });
+  }, 60000);
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 
   it('/users (POST)', () => {
