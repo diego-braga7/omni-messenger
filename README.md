@@ -86,6 +86,16 @@ Atualmente, o consumidor processa a mensagem e, em caso de falha na API externa 
 3. A mensagem é removida da fila (ACK) para evitar loops infinitos.
 *Para ambientes de produção, recomenda-se a configuração de Dead Letter Exchanges (DLX) para retentativas com backoff exponencial.*
 
+## Configuração do Google Calendar
+
+Para utilizar a funcionalidade de agendamento, é necessário configurar as credenciais da API do Google Calendar:
+
+1. Crie um projeto no [Google Cloud Console](https://console.cloud.google.com/).
+2. Ative a API do Google Calendar.
+3. Crie credenciais OAuth 2.0 (Client ID e Client Secret).
+4. Adicione a URL de callback autorizada: `http://localhost:3000/auth/google/callback` (ou a URL correspondente ao seu ambiente).
+5. Preencha as variáveis no arquivo `.env` (baseado no `.env.example`).
+
 ## Desenvolvimento
 
 O projeto utiliza:
