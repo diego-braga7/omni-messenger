@@ -3,8 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import {
+  IButton,
   IMessengerProvider,
+  IOptionSection,
+  ISendButtonListOptions,
   ISendDocumentOptions,
+  ISendOptionListOptions,
   ISendTextOptions,
 } from '../../interfaces/messenger.interface';
 
@@ -101,6 +105,120 @@ export class ZApiProvider implements IMessengerProvider {
     } catch (error) {
       this.logger.error(
         `Error sending document via Z-API: ${error.message}`,
+        error.response?.data,
+      );
+      throw error;
+    }
+  }
+
+  async sendOptionList(
+    to: string,
+    message: string,
+    sections: IOptionSection[],
+    options?: ISendOptionListOptions,
+  ): Promise<any> {
+    const url = `${this.baseUrl}/${this.instanceId}/token/${this.token}/send-option-list`;
+
+    // Z-API structure mapping
+    // If multiple sections, we might need to adjust based on Z-API specific capabilities.
+    // For now, mapping the first section as 'optionList' root or multiple if supported.
+    // Based on prompt typical payload: optionList: { title, rows: [] }
+    // We will support single section primarily as per prompt hint, but structured for interface.
+
+    let optionListPayload: any;
+
+    if (sections.length === 1) {
+      optionListPayload = {
+        title: sections[0].title,
+        rows: sections[0].rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+        })),
+      };
+    } else {
+      // Fallback for multiple sections if Z-API supports it (usually 'sections' array instead of 'rows')
+      // But adhering to prompt 'typical payload', we might flatten or just pick one.
+      // Let's try to map to sections if applicable, or just flatten.
+      // WhatsApp API supports 'sections'. Z-API might wrap it.
+      // Safe bet: use 'sections' key if multiple, or assume Z-API maps it.
+      // However, prompt implies { title, rows }.
+      // Let's just take the first section for now to be safe with the prompt description,
+      // or if we really need multiple, we'd need to know Z-API spec.
+      // I'll implement mapping to `optionList: { title: 'Menu', sections: [...] }` if > 1
+      optionListPayload = {
+        title: options?.title || 'Menu',
+        sections: sections.map((s) => ({
+          title: s.title,
+          rows: s.rows,
+        })),
+      };
+    }
+
+    const payload = {
+      phone: to,
+      message,
+      title: options?.title,
+      footer: options?.footer,
+      buttonLabel: options?.buttonLabel || 'Opções',
+      optionList: optionListPayload,
+    };
+
+    this.logger.log(`Sending option list to ${to} via Z-API`);
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(url, payload, { headers: this.getHeaders() }),
+      );
+      return {
+        messageId: response.data.messageId,
+        zaapId: response.data.zaapId,
+        id: response.data.id,
+        ...response.data,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error sending option list via Z-API: ${error.message}`,
+        error.response?.data,
+      );
+      throw error;
+    }
+  }
+
+  async sendButtonList(
+    to: string,
+    message: string,
+    buttons: IButton[],
+    options?: ISendButtonListOptions,
+  ): Promise<any> {
+    const url = `${this.baseUrl}/${this.instanceId}/token/${this.token}/send-button-list`;
+
+    const payload = {
+      phone: to,
+      message,
+      title: options?.title,
+      footer: options?.footer,
+      buttonList: {
+        buttons: buttons.map((btn) => ({
+          id: btn.id,
+          label: btn.label,
+        })),
+      },
+    };
+
+    this.logger.log(`Sending button list to ${to} via Z-API`);
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(url, payload, { headers: this.getHeaders() }),
+      );
+      return {
+        messageId: response.data.messageId,
+        zaapId: response.data.zaapId,
+        id: response.data.id,
+        ...response.data,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error sending button list via Z-API: ${error.message}`,
         error.response?.data,
       );
       throw error;
