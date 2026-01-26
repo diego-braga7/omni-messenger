@@ -13,6 +13,7 @@ FROM base AS builder
 COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ENV NODE_OPTIONS=--max-old-space-size=3072
 RUN npm run build
 
 # Production stage
