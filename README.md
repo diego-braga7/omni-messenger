@@ -55,6 +55,17 @@ A documentação interativa via Swagger está disponível em:
 - **PUT /users/:id**: Atualização de usuário.
 - **DELETE /users/:id**: Remoção lógica (soft delete).
 
+### Agendamento (Scheduling)
+- **POST /professionals**: Criação de profissional.
+- **GET /professionals**: Listagem de profissionais.
+- **PATCH /professionals/:id**: Atualização de profissional.
+- **DELETE /professionals/:id**: Remoção lógica.
+  - *Nota*: Ao remover um profissional, todos os seus agendamentos futuros são cancelados automaticamente e os clientes notificados via mensagem.
+
+### Autenticação Google Calendar
+- **GET /auth/google-calendar/auth/:professionalId**: Inicia o fluxo OAuth2 para um profissional.
+- **GET /auth/google-calendar/callback**: Callback para salvar os tokens do profissional.
+
 Para detalhes sobre a arquitetura do módulo de mensagens (Z-API, Factory Pattern, SOLID), consulte:
 [Documentação do Módulo Messenger](docs/MESSENGER_MODULE.md)
 
