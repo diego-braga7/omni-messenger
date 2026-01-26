@@ -1,70 +1,82 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { calendar_v3, google } from 'googleapis';
-import { JWT } from 'google-auth-library';
 
 @Injectable()
 export class GoogleCalendarService {
   private readonly logger = new Logger(GoogleCalendarService.name);
-  private calendar: calendar_v3.Calendar;
-  private auth: JWT;
 
-  constructor(private readonly configService: ConfigService) {
-    this.initializeClient();
+  constructor(private readonly configService: ConfigService) {}
+
+  generateAuthUrl(state: string) {
+    const oAuth2Client = new google.auth.OAuth2(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_REDIRECT_URI'),
+    );
+
+    return oAuth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/calendar'],
+      state: state,
+      prompt: 'consent',
+    });
   }
 
-  private initializeClient() {
-    const clientEmail = this.configService.get<string>('GOOGLE_CLIENT_EMAIL');
-    const privateKey = this.configService
-      .get<string>('GOOGLE_PRIVATE_KEY')
-      ?.replace(/\\n/g, '\n');
-    const projectId = this.configService.get<string>('GOOGLE_PROJECT_ID');
+  async getTokens(code: string) {
+    const oAuth2Client = new google.auth.OAuth2(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_REDIRECT_URI'),
+    );
 
-    if (!clientEmail || !privateKey || !projectId) {
-      this.logger.warn('Google Calendar credentials not fully configured');
-      return;
+    const { tokens } = await oAuth2Client.getToken(code);
+    return tokens;
+  }
+
+  private getOAuthClient(accessToken?: string | null, refreshToken?: string | null) {
+    if (!accessToken && !refreshToken) {
+      throw new Error('No authentication credentials provided');
     }
 
-    this.auth = new google.auth.JWT({
-      email: clientEmail,
-      key: privateKey,
-      scopes: ['https://www.googleapis.com/auth/calendar'],
+    const oAuth2Client = new google.auth.OAuth2(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+      this.configService.get<string>('GOOGLE_REDIRECT_URI'),
+    );
+
+    oAuth2Client.setCredentials({
+      access_token: accessToken || undefined,
+      refresh_token: refreshToken || undefined,
     });
 
-    this.calendar = google.calendar({ version: 'v3', auth: this.auth });
+    return oAuth2Client;
   }
 
   async checkAvailability(
-    calendarId: string,
+    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
     start: Date,
     end: Date,
   ): Promise<calendar_v3.Schema$TimePeriod[]> {
-    if (!this.calendar) {
-      this.logger.error('Google Calendar client not initialized');
-      throw new Error('Google Calendar client not initialized');
-    }
+    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const calendar = google.calendar({ version: 'v3', auth });
 
     try {
-      const response = await this.calendar.freebusy.query({
+      const response = await calendar.freebusy.query({
         requestBody: {
           timeMin: start.toISOString(),
           timeMax: end.toISOString(),
-          items: [{ id: calendarId }],
+          items: [{ id: professional.calendarId }],
         },
       });
 
       const busyIntervals =
-        response.data.calendars?.[calendarId]?.busy || [];
-      
-      // We are returning busy intervals here as per API, but the prompt asked for "available intervals".
-      // However, usually we return busy times so the logic can find gaps. 
-      // Re-reading prompt: "Retornar intervalos livres" (Return free intervals).
-      // To return free intervals, I need to inverse the busy intervals within start-end.
+        response.data.calendars?.[professional.calendarId]?.busy || [];
       
       return this.calculateFreeSlots(start, end, busyIntervals);
     } catch (error) {
       this.logger.error(
-        `Error checking availability for ${calendarId}: ${error.message}`,
+        `Error checking availability for ${professional.calendarId}: ${error.message}`,
         error.stack,
       );
       throw error;
@@ -117,7 +129,7 @@ export class GoogleCalendarService {
   }
 
   async createEvent(
-    calendarId: string,
+    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
     eventData: {
       summary: string;
       description?: string;
@@ -126,20 +138,17 @@ export class GoogleCalendarService {
       attendees?: string[];
     },
   ): Promise<string> {
-    if (!this.calendar) {
-      throw new Error('Google Calendar client not initialized');
-    }
+    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const calendar = google.calendar({ version: 'v3', auth });
 
     try {
-      const response = await this.calendar.events.insert({
-        calendarId,
+      const response = await calendar.events.insert({
+        calendarId: professional.calendarId,
         requestBody: {
           summary: eventData.summary,
           description: eventData.description,
           start: {
             dateTime: eventData.start.toISOString(),
-            // Ensure we let Google handle timezone or send it explicitly if needed.
-            // Using ISO string implies UTC or offset included.
           },
           end: {
             dateTime: eventData.end.toISOString(),
@@ -157,30 +166,34 @@ export class GoogleCalendarService {
       return response.data.id;
     } catch (error) {
       this.logger.error(
-        `Error creating event in ${calendarId}: ${error.message}`,
+        `Error creating event in ${professional.calendarId}: ${error.message}`,
         error.stack,
       );
       throw error;
     }
   }
 
-  async deleteEvent(calendarId: string, eventId: string): Promise<void> {
-    if (!this.calendar) {
-      throw new Error('Google Calendar client not initialized');
-    }
+  async deleteEvent(
+    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
+    eventId: string
+  ): Promise<void> {
+    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const calendar = google.calendar({ version: 'v3', auth });
 
     try {
-      await this.calendar.events.delete({
-        calendarId,
+      await calendar.events.delete({
+        calendarId: professional.calendarId,
         eventId,
       });
       this.logger.log(`Event deleted: ${eventId}`);
     } catch (error) {
       this.logger.error(
-        `Error deleting event ${eventId} from ${calendarId}: ${error.message}`,
+        `Error deleting event ${eventId} from ${professional.calendarId}: ${error.message}`,
         error.stack,
       );
       throw error;
     }
   }
+
+
 }

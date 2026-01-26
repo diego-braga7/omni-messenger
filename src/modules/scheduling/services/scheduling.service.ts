@@ -255,7 +255,7 @@ export class SchedulingService {
     endOfDay.setHours(18, 0, 0, 0);
 
     const freeSlots = await this.googleCalendarService.checkAvailability(
-      professional.calendarId,
+      professional,
       startOfDay,
       endOfDay,
     );
@@ -338,7 +338,7 @@ export class SchedulingService {
     }
 
     // Create Google Calendar Event
-    const eventId = await this.googleCalendarService.createEvent(professional.calendarId, {
+    const eventId = await this.googleCalendarService.createEvent(professional, {
         summary: `Agendamento: ${service.name} - ${professional.name}`,
         description: `Cliente: ${state.phone}`,
         start: startDateTime,

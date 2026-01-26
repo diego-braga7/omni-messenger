@@ -22,6 +22,15 @@ export class Professional {
   @Column({ name: 'calendar_id' })
   calendarId: string;
 
+  @Column({ name: 'google_access_token', nullable: true, type: 'varchar' })
+  googleAccessToken: string | null;
+
+  @Column({ name: 'google_refresh_token', nullable: true, type: 'varchar' })
+  googleRefreshToken: string | null;
+
+  @Column({ name: 'google_token_expiry', type: 'bigint', nullable: true })
+  googleTokenExpiry: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

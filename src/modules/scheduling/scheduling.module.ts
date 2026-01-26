@@ -5,6 +5,7 @@ import { Service } from './entities/service.entity';
 import { Appointment } from './entities/appointment.entity';
 import { ConversationState } from './entities/conversation-state.entity';
 import { GoogleCalendarService } from './services/google-calendar.service';
+import { GoogleCalendarController } from './controllers/google-calendar.controller';
 import { SchedulingService } from './services/scheduling.service';
 import { SchedulingConsumer } from './scheduling.consumer';
 import { ConfigModule } from '@nestjs/config';
@@ -23,7 +24,7 @@ import { UsersModule } from '../users/users.module';
     MessengerModule,
     UsersModule,
   ],
-  controllers: [SchedulingConsumer],
+  controllers: [SchedulingConsumer, GoogleCalendarController],
   providers: [GoogleCalendarService, SchedulingService],
   exports: [TypeOrmModule, GoogleCalendarService, SchedulingService],
 })
