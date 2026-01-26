@@ -26,4 +26,8 @@ export class UsersService {
   remove(id: string) {
     return this.userRepository.softDelete(id);
   }
+
+  findOrCreate(phone: string) {
+    return this.userRepository.findOrCreate(phone);
+  }
 }

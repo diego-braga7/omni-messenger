@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MessengerController } from './messenger.controller';
 import { TemplateController } from './template.controller';
+import { WebhookController } from './webhook.controller';
 import { ZApiProvider } from './providers/z-api/z-api.service';
 import { MESSENGER_PROVIDER } from './messenger.constants';
 import { MessengerService } from './services/messenger.service';
@@ -26,7 +27,7 @@ import { UsersModule } from '../users/users.module';
     forwardRef(() => RabbitmqModule),
     UsersModule,
   ],
-  controllers: [MessengerController, TemplateController, MessengerConsumer],
+  controllers: [MessengerController, TemplateController, WebhookController, MessengerConsumer],
   providers: [
     ZApiProvider,
     {

@@ -5,7 +5,11 @@ import { Service } from './entities/service.entity';
 import { Appointment } from './entities/appointment.entity';
 import { ConversationState } from './entities/conversation-state.entity';
 import { GoogleCalendarService } from './services/google-calendar.service';
+import { SchedulingService } from './services/scheduling.service';
+import { SchedulingConsumer } from './scheduling.consumer';
 import { ConfigModule } from '@nestjs/config';
+import { MessengerModule } from '../messenger/messenger.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -16,8 +20,11 @@ import { ConfigModule } from '@nestjs/config';
       Appointment,
       ConversationState,
     ]),
+    MessengerModule,
+    UsersModule,
   ],
-  providers: [GoogleCalendarService],
-  exports: [TypeOrmModule, GoogleCalendarService],
+  controllers: [SchedulingConsumer],
+  providers: [GoogleCalendarService, SchedulingService],
+  exports: [TypeOrmModule, GoogleCalendarService, SchedulingService],
 })
 export class SchedulingModule {}
