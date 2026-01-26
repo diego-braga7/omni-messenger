@@ -8,6 +8,7 @@ import { getTypeOrmConfig } from './config/typeorm.config';
 import { RabbitmqModule } from './modules/rabbitmq/rabbitmq.module';
 import { MessengerModule } from './modules/messenger/messenger.module';
 import { UsersModule } from './modules/users/users.module';
+import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { THROTTLER_CONFIG } from './common/constants';
 
 @Module({
@@ -29,6 +30,7 @@ import { THROTTLER_CONFIG } from './common/constants';
     RabbitmqModule,
     UsersModule,
     MessengerModule,
+    SchedulingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

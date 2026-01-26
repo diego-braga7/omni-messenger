@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Message } from '../../messenger/entities/message.entity';
+import { Appointment } from '../../scheduling/entities/appointment.entity';
 
 @Entity('users')
 export class User {
@@ -25,6 +26,9 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
+  appointments: Appointment[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
