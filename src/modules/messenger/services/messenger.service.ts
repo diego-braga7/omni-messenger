@@ -190,6 +190,26 @@ export class MessengerService {
   }
 
   async sendBulk(dto: BulkSendDto) {
+    let templateType = MessageType.TEXT;
+
+    if (dto.modelId) {
+      const template = await this.templateRepo.findById(dto.modelId);
+      if (!template) {
+        throw new BadRequestException('Template not found');
+      }
+      if (
+        template.type !== MessageType.TEXT &&
+        template.type !== MessageType.DOCUMENT
+      ) {
+        throw new BadRequestException(
+          'Template type mismatch. Expected TEXT or DOCUMENT.',
+        );
+      }
+      templateType = template.type;
+    } else if (dto.document) {
+      templateType = MessageType.DOCUMENT;
+    }
+
     const phones = new Set<string>();
     if (dto.phones) dto.phones.forEach((p) => phones.add(p));
     if (dto.userIds && dto.userIds.length > 0) {
@@ -201,7 +221,7 @@ export class MessengerService {
     const chunks = this.chunkArray(phoneList, BULK_SEND_CONFIG.BATCH_SIZE);
 
     this.logger.log(
-      `Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches.`,
+      `Starting bulk send: ${phoneList.length} messages in ${chunks.length} batches. Type: ${templateType}`,
     );
 
     chunks.forEach((chunk, index) => {
@@ -209,12 +229,24 @@ export class MessengerService {
         this.logger.log(`Processing bulk batch ${index + 1}/${chunks.length}`);
         for (const phone of chunk) {
           try {
-            // We use sendText directly. It queues the message.
-            await this.sendText({
-              phone,
-              message: dto.message,
-              modelId: dto.modelId,
-            });
+            if (templateType === MessageType.DOCUMENT) {
+              await this.sendDocument({
+                phone,
+                document: dto.document,
+                fileName: dto.fileName,
+                extension: dto.extension,
+                caption: dto.message,
+                modelId: dto.modelId,
+              });
+            } else {
+              // For TEXT type, message is required.
+              // If it's missing, sendText validation or DB constraint will catch it.
+              await this.sendText({
+                phone,
+                message: dto.message || '',
+                modelId: dto.modelId,
+              });
+            }
           } catch (e) {
             this.logger.error(`Failed to queue bulk message to ${phone}`, e);
           }

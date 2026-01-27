@@ -442,5 +442,77 @@ describe('MessengerService', () => {
       // Phones should be 1, 2, 3
       expect(sendTextSpy).toHaveBeenCalledTimes(3);
     });
+
+    it('should throw BadRequestException if template not found', async () => {
+      const dto = {
+        phones: ['1'],
+        message: 'hello',
+        modelId: 'invalid-id',
+      };
+      mockTemplateRepo.findById.mockResolvedValue(null);
+
+      await expect(service.sendBulk(dto)).rejects.toThrow(BadRequestException);
+      expect(mockTemplateRepo.findById).toHaveBeenCalledWith('invalid-id');
+    });
+
+    it('should process bulk send with DOCUMENT template', async () => {
+      const dto = {
+        phones: ['1'],
+        message: 'hello',
+        modelId: 'doc-id',
+      };
+      mockTemplateRepo.findById.mockResolvedValue({
+        id: 'doc-id',
+        type: MessageType.DOCUMENT,
+      });
+
+      const sendDocumentSpy = jest
+        .spyOn(service, 'sendDocument')
+        .mockResolvedValue({} as any);
+
+      await service.sendBulk(dto);
+      jest.runAllTimers();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(sendDocumentSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: '1',
+          modelId: 'doc-id',
+          caption: 'hello',
+        }),
+      );
+    });
+
+    it('should process bulk send with explicit document fields', async () => {
+      const dto = {
+        phones: ['1'],
+        message: 'hello', // caption
+        document: 'http://url.com',
+        fileName: 'file',
+        extension: 'pdf',
+      };
+
+      const sendDocumentSpy = jest
+        .spyOn(service, 'sendDocument')
+        .mockResolvedValue({} as any);
+
+      await service.sendBulk(dto);
+      jest.runAllTimers();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(sendDocumentSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: '1',
+          document: 'http://url.com',
+          fileName: 'file',
+          extension: 'pdf',
+          caption: 'hello',
+        }),
+      );
+    });
   });
 });
