@@ -279,7 +279,7 @@ describe('MessengerService', () => {
         'url',
         'file',
         'pdf',
-        { caption: 'cap' },
+        { caption: 'cap', delayMessage: undefined },
       );
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
         '1',
@@ -310,7 +310,10 @@ describe('MessengerService', () => {
 
       await service.processMessage('1');
 
-      expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
+      expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello', {
+        delayMessage: undefined,
+        delayTyping: undefined,
+      });
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
         '1',
         MessageStatus.SENT,
@@ -336,7 +339,10 @@ describe('MessengerService', () => {
 
       await service.processMessage('1');
 
-      expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello');
+      expect(mockProvider.sendText).toHaveBeenCalledWith('123', 'hello', {
+        delayMessage: undefined,
+        delayTyping: undefined,
+      });
       expect(mockMessageRepo.updateStatus).toHaveBeenCalledWith(
         '1',
         MessageStatus.SENT,

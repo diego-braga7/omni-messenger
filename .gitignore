@@ -39,3 +39,4 @@ lerna-debug.log*
 
 # nest.js
 /test/*.js
+app_logs.txt

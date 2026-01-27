@@ -88,6 +88,14 @@ export class Message {
   @Column({ nullable: true })
   caption: string;
 
+  @ApiProperty({ nullable: true })
+  @Column({ name: 'delay_message', nullable: true, type: 'int' })
+  delayMessage: number;
+
+  @ApiProperty({ nullable: true })
+  @Column({ name: 'delay_typing', nullable: true, type: 'int' })
+  delayTyping: number;
+
   @ApiProperty()
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

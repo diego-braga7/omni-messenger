@@ -54,6 +54,8 @@ export class MessengerService {
       status: MessageStatus.PENDING,
       userId: user.id,
       templateId: dto.modelId,
+      delayMessage: dto.delayMessage,
+      delayTyping: dto.delayTyping,
     });
 
     await this.rabbitmqService.sendMessage(RABBITMQ_EVENTS.PROCESS_MESSAGE, {
@@ -144,14 +146,20 @@ export class MessengerService {
     try {
       let result;
       if (message.type === MessageType.TEXT) {
-        result = await this.provider.sendText(message.to, message.content);
+        result = await this.provider.sendText(message.to, message.content, {
+          delayMessage: message.delayMessage,
+          delayTyping: message.delayTyping,
+        });
       } else {
         result = await this.provider.sendDocument(
           message.to,
           message.content,
           message.fileName || 'file',
           message.extension || 'txt',
-          { caption: message.caption },
+          {
+            caption: message.caption,
+            delayMessage: message.delayMessage,
+          },
         );
       }
 
