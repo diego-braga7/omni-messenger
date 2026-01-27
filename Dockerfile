@@ -19,7 +19,7 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV PRODUCTION
 
 COPY --from=builder /app/dist ./dist
 COPY --from=deps /app/node_modules ./node_modules

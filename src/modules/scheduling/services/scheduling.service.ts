@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository, Between } from 'typeorm';
 import { ConversationState } from '../entities/conversation-state.entity';
 import { Service } from '../entities/service.entity';
@@ -29,6 +30,7 @@ export class SchedulingService {
     @Inject(MESSENGER_PROVIDER)
     private readonly messengerProvider: IMessengerProvider,
     private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handleMessage(
@@ -39,14 +41,13 @@ export class SchedulingService {
   ) {
     this.logger.log(`Handling message from ${phone}: ${text} (${type})`);
 
-    // Ensure user exists
     const user = await this.usersService.findOrCreate(phone);
 
-    // Get or create state
     let state = await this.stateRepo.findOne({ where: { phone } });
 
-    // Global cancellation
-    if (text?.toLowerCase() === 'cancelar') {
+    const normalizedText = text?.toLowerCase() || '';
+
+    if (normalizedText === 'cancelar') {
       if (state) {
         await this.stateRepo.delete(phone);
         await this.messengerProvider.sendText(
@@ -62,12 +63,17 @@ export class SchedulingService {
       return;
     }
 
-    // Initial flow trigger
+    const isStartSchedulingIntent =
+      normalizedText.includes('agendar') || normalizedText.includes('marcar');
+
+    const isButtonYes =
+      type === 'button_response' &&
+      (normalizedText === 'sim' ||
+        payload?.label?.toLowerCase() === 'sim' ||
+        payload?.selectedButtonId === 'sim');
+
     if (!state) {
-      if (
-        text?.toLowerCase().includes('agendar') ||
-        text?.toLowerCase().includes('marcar')
-      ) {
+      if (isStartSchedulingIntent || isButtonYes) {
         await this.startScheduling(phone);
       }
       return;
@@ -111,7 +117,6 @@ export class SchedulingService {
       return;
     }
 
-    // Save initial state
     await this.stateRepo.save({
       phone,
       step: ConversationStep.SELECT_SERVICE,
@@ -131,6 +136,24 @@ export class SchedulingService {
       [{ title: 'Serviços', rows }],
       { title: 'Agendamento', buttonLabel: 'Ver Serviços' },
     );
+
+    const rawEnv = this.configService.get<string>('NODE_ENV') || 'DEV';
+    const normalizedEnv = rawEnv.toUpperCase();
+
+    if (normalizedEnv === 'DEV' && phone === '5564996064649') {
+      await this.messengerProvider.sendButtonList(
+        phone,
+        'Mensagem de teste do fluxo de agendamento. Confirma o agendamento?',
+        [
+          { id: 'sim', label: 'Sim' },
+          { id: 'nao', label: 'Não' },
+        ],
+        {
+          title: 'Confirmação',
+          footer: 'Fluxo de agendamento (DEV)',
+        },
+      );
+    }
   }
 
   private async handleSelectService(

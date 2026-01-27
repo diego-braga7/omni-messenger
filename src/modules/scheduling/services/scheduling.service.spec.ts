@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchedulingService } from './scheduling.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { ConversationState } from '../entities/conversation-state.entity';
 import { Service } from '../entities/service.entity';
 import { Professional } from '../entities/professional.entity';
@@ -47,6 +48,13 @@ describe('SchedulingService', () => {
     findOrCreate: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn((key) => {
+        if (key === 'NODE_ENV') return 'DEV';
+        return null;
+    }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -58,6 +66,7 @@ describe('SchedulingService', () => {
         { provide: GoogleCalendarService, useValue: mockGoogleCalendarService },
         { provide: MESSENGER_PROVIDER, useValue: mockMessengerProvider },
         { provide: UsersService, useValue: mockUsersService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
