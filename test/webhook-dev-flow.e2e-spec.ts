@@ -44,7 +44,7 @@ describe('Webhook DEV Flow (e2e)', () => {
   const mockUsersService = {
     findOrCreate: jest
       .fn()
-      .mockResolvedValue({ id: 'user-1', phone: '5566999999999' }),
+      .mockResolvedValue({ id: 'user-1', phone: '5564996064649' }),
   };
 
   const mockMessengerProvider = {
@@ -119,7 +119,7 @@ describe('Webhook DEV Flow (e2e)', () => {
     expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith(
       RABBITMQ_EVENTS.MESSAGE_RECEIVED,
       expect.objectContaining({
-        phone: '5566999999999',
+        phone: '5564996064649',
         type: 'button_response',
         text: 'sim',
         contentPayload: expect.objectContaining({
@@ -150,7 +150,7 @@ describe('Webhook DEV Flow (e2e)', () => {
     // 5. Verify startScheduling was called (indirectly via side effects)
     // Expect sendOptionList (Service List)
     expect(mockMessengerProvider.sendOptionList).toHaveBeenCalledWith(
-      '5566999999999',
+      '5564996064649',
       expect.stringContaining('Escolha um serviço'),
       expect.any(Array),
       expect.any(Object),
@@ -158,7 +158,7 @@ describe('Webhook DEV Flow (e2e)', () => {
 
     // Expect sendButtonList (Test Message in DEV for this number)
     expect(mockMessengerProvider.sendButtonList).toHaveBeenCalledWith(
-      '5566999999999',
+      '5564996064649',
       expect.stringContaining('Mensagem de teste'),
       expect.arrayContaining([
         expect.objectContaining({ id: 'sim', label: 'Sim' }),

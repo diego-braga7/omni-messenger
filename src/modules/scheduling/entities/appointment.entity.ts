@@ -26,10 +26,10 @@ export class Appointment {
   @Column({ name: 'service_id' })
   serviceId: string;
 
-  @Column({ name: 'start_time', type: 'timestamp' })
+  @Column({ name: 'start_time' })
   startTime: Date;
 
-  @Column({ name: 'end_time', type: 'timestamp' })
+  @Column({ name: 'end_time' })
   endTime: Date;
 
   @Column({

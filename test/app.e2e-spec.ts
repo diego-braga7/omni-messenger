@@ -22,6 +22,14 @@ jest.mock('typeorm', () => {
 });
 
 import { AppModule } from './../src/app.module';
+import { User } from '../src/modules/users/entities/user.entity';
+import { Appointment } from '../src/modules/scheduling/entities/appointment.entity';
+import { Professional } from '../src/modules/scheduling/entities/professional.entity';
+import { Service } from '../src/modules/scheduling/entities/service.entity';
+import { ConversationState } from '../src/modules/scheduling/entities/conversation-state.entity';
+import { Message } from '../src/modules/messenger/entities/message.entity';
+import { MessageTemplate } from '../src/modules/messenger/entities/message-template.entity';
+import { ZApiReturn } from '../src/modules/messenger/entities/z-api-return.entity';
 
 // Mock the TypeOrm configuration
 jest.mock('./../src/config/typeorm.config', () => {
@@ -32,14 +40,14 @@ jest.mock('./../src/config/typeorm.config', () => {
       synchronize: true,
       dropSchema: true,
       entities: [
-        require('../src/modules/users/entities/user.entity').User,
-        require('../src/modules/scheduling/entities/appointment.entity').Appointment,
-        require('../src/modules/scheduling/entities/professional.entity').Professional,
-        require('../src/modules/scheduling/entities/service.entity').Service,
-        require('../src/modules/scheduling/entities/conversation-state.entity').ConversationState,
-        require('../src/modules/messenger/entities/message.entity').Message,
-        require('../src/modules/messenger/entities/message-template.entity').MessageTemplate,
-        require('../src/modules/messenger/entities/z-api-return.entity').ZApiReturn,
+        User,
+        Appointment,
+        Professional,
+        Service,
+        ConversationState,
+        Message,
+        MessageTemplate,
+        ZApiReturn,
       ],
       autoLoadEntities: true,
     }),
