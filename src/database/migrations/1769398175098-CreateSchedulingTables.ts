@@ -6,27 +6,42 @@ export class CreateSchedulingTables1769398175098 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ⚠️ DROP EXISTING CONFLICTING TABLES/ENUMS FROM PREVIOUS IMPLEMENTATIONS
     // This ensures a clean slate for the new schema structure
-    
+
     // Drop Foreign Keys if they exist (ignoring errors if not exists would be better but simple drop is fine if we know the schema)
     try {
-        await queryRunner.query(`ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_service"`);
-        await queryRunner.query(`ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_professional"`);
-        await queryRunner.query(`ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_user"`);
+      await queryRunner.query(
+        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_service"`,
+      );
+      await queryRunner.query(
+        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_professional"`,
+      );
+      await queryRunner.query(
+        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_user"`,
+      );
     } catch (e) {}
 
     // Drop tables if they exist
-    await queryRunner.query(`DROP TABLE IF EXISTS "scheduling_sessions" CASCADE`);
-    await queryRunner.query(`DROP TABLE IF EXISTS "conversation_states" CASCADE`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "scheduling_sessions" CASCADE`,
+    );
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS "conversation_states" CASCADE`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS "appointments" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "business_services" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "services" CASCADE`);
     await queryRunner.query(`DROP TABLE IF EXISTS "professionals" CASCADE`);
 
     // Drop Types if they exist
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."appointment_status_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."scheduling_step_enum"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "public"."conversation_step_enum"`);
-
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."appointment_status_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."scheduling_step_enum"`,
+    );
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "public"."conversation_step_enum"`,
+    );
 
     // --- START NEW SCHEMA ---
 
