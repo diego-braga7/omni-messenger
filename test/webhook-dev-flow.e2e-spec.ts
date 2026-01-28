@@ -1,8 +1,7 @@
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { RabbitmqService } from '../src/modules/rabbitmq/rabbitmq.service';
 import { WebhookController } from '../src/modules/messenger/webhook.controller';
@@ -18,9 +17,7 @@ import { GoogleCalendarService } from '../src/modules/scheduling/services/google
 
 describe('Webhook DEV Flow (e2e)', () => {
   let app: INestApplication;
-  let rabbitmqService: RabbitmqService;
   let schedulingService: SchedulingService;
-  let messengerProvider: any;
 
   const mockRabbitmqService = {
     sendMessage: jest.fn().mockResolvedValue(null),
@@ -45,7 +42,9 @@ describe('Webhook DEV Flow (e2e)', () => {
   };
 
   const mockUsersService = {
-    findOrCreate: jest.fn().mockResolvedValue({ id: 'user-1', phone: '5566999999999' }),
+    findOrCreate: jest
+      .fn()
+      .mockResolvedValue({ id: 'user-1', phone: '5566999999999' }),
   };
 
   const mockMessengerProvider = {
@@ -72,10 +71,19 @@ describe('Webhook DEV Flow (e2e)', () => {
         SchedulingService,
         { provide: RabbitmqService, useValue: mockRabbitmqService },
         { provide: ConfigService, useValue: mockConfigService },
-        { provide: getRepositoryToken(ConversationState), useValue: mockStateRepo },
+        {
+          provide: getRepositoryToken(ConversationState),
+          useValue: mockStateRepo,
+        },
         { provide: getRepositoryToken(Service), useValue: mockServiceRepo },
-        { provide: getRepositoryToken(Professional), useValue: mockProfessionalRepo },
-        { provide: getRepositoryToken(Appointment), useValue: mockAppointmentRepo },
+        {
+          provide: getRepositoryToken(Professional),
+          useValue: mockProfessionalRepo,
+        },
+        {
+          provide: getRepositoryToken(Appointment),
+          useValue: mockAppointmentRepo,
+        },
         { provide: UsersService, useValue: mockUsersService },
         { provide: MESSENGER_PROVIDER, useValue: mockMessengerProvider },
         { provide: GoogleCalendarService, useValue: mockGoogleCalendarService },
@@ -85,9 +93,7 @@ describe('Webhook DEV Flow (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    rabbitmqService = moduleFixture.get<RabbitmqService>(RabbitmqService);
     schedulingService = moduleFixture.get<SchedulingService>(SchedulingService);
-    messengerProvider = moduleFixture.get(MESSENGER_PROVIDER);
   });
 
   afterAll(async () => {
@@ -101,11 +107,13 @@ describe('Webhook DEV Flow (e2e)', () => {
       .send({ scenario: 'success' })
       .expect(200);
 
-    expect(response.body).toEqual(expect.objectContaining({
-      status: 'simulated',
-      mode: 'DEV',
-      scenario: 'success',
-    }));
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        status: 'simulated',
+        mode: 'DEV',
+        scenario: 'success',
+      }),
+    );
 
     // 2. Verify RabbitMQ message
     expect(mockRabbitmqService.sendMessage).toHaveBeenCalledWith(
@@ -115,8 +123,8 @@ describe('Webhook DEV Flow (e2e)', () => {
         type: 'button_response',
         text: 'sim',
         contentPayload: expect.objectContaining({
-            selectedButtonId: 'sim'
-        })
+          selectedButtonId: 'sim',
+        }),
       }),
     );
 
@@ -127,7 +135,7 @@ describe('Webhook DEV Flow (e2e)', () => {
     mockStateRepo.findOne.mockResolvedValue(null);
     // Simulate available services
     mockServiceRepo.find.mockResolvedValue([
-      { id: 'srv-1', name: 'Test Service', price: 100, durationMinutes: 60 }
+      { id: 'srv-1', name: 'Test Service', price: 100, durationMinutes: 60 },
     ]);
 
     // 4. Trigger SchedulingService manually with the event data
@@ -142,21 +150,21 @@ describe('Webhook DEV Flow (e2e)', () => {
     // 5. Verify startScheduling was called (indirectly via side effects)
     // Expect sendOptionList (Service List)
     expect(mockMessengerProvider.sendOptionList).toHaveBeenCalledWith(
-        '5566999999999',
-        expect.stringContaining('Escolha um serviço'),
-        expect.any(Array),
-        expect.any(Object)
+      '5566999999999',
+      expect.stringContaining('Escolha um serviço'),
+      expect.any(Array),
+      expect.any(Object),
     );
 
     // Expect sendButtonList (Test Message in DEV for this number)
     expect(mockMessengerProvider.sendButtonList).toHaveBeenCalledWith(
-        '5566999999999',
-        expect.stringContaining('Mensagem de teste'),
-        expect.arrayContaining([
-            expect.objectContaining({ id: 'sim', label: 'Sim' }),
-            expect.objectContaining({ id: 'nao', label: 'Não' })
-        ]),
-        expect.any(Object)
+      '5566999999999',
+      expect.stringContaining('Mensagem de teste'),
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'sim', label: 'Sim' }),
+        expect.objectContaining({ id: 'nao', label: 'Não' }),
+      ]),
+      expect.any(Object),
     );
   });
 });
