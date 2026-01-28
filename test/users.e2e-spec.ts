@@ -9,10 +9,7 @@ jest.mock('typeorm', () => {
     ...actual,
     Column: (typeOrOptions: any, options: any) => {
       let finalTypeOrOptions = typeOrOptions;
-      if (
-        typeof typeOrOptions === 'object' &&
-        typeOrOptions !== null
-      ) {
+      if (typeof typeOrOptions === 'object' && typeOrOptions !== null) {
         if (typeOrOptions.type === 'enum') {
           finalTypeOrOptions = { ...typeOrOptions, type: 'simple-enum' };
         } else if (typeOrOptions.type === 'jsonb') {
