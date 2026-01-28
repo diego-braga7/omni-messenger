@@ -12,10 +12,13 @@ jest.mock('typeorm', () => {
       let finalTypeOrOptions = typeOrOptions;
       if (
         typeof typeOrOptions === 'object' &&
-        typeOrOptions !== null &&
-        typeOrOptions.type === 'enum'
+        typeOrOptions !== null
       ) {
-        finalTypeOrOptions = { ...typeOrOptions, type: 'simple-enum' };
+        if (typeOrOptions.type === 'enum') {
+          finalTypeOrOptions = { ...typeOrOptions, type: 'simple-enum' };
+        } else if (typeOrOptions.type === 'jsonb') {
+          finalTypeOrOptions = { ...typeOrOptions, type: 'simple-json' };
+        }
       }
       return actual.Column(finalTypeOrOptions, options);
     },
@@ -30,6 +33,14 @@ import { MessageTemplateRepository } from './../src/modules/messenger/repositori
 import { UserRepository } from './../src/modules/users/repositories/user.repository';
 import { RabbitmqService } from './../src/modules/messenger/../rabbitmq/rabbitmq.service';
 import { MESSENGER_PROVIDER } from './../src/modules/messenger/messenger.constants';
+import { User } from './../src/modules/users/entities/user.entity';
+import { Appointment } from './../src/modules/scheduling/entities/appointment.entity';
+import { Professional } from './../src/modules/scheduling/entities/professional.entity';
+import { Service } from './../src/modules/scheduling/entities/service.entity';
+import { ConversationState } from './../src/modules/scheduling/entities/conversation-state.entity';
+import { Message } from './../src/modules/messenger/entities/message.entity';
+import { MessageTemplate } from './../src/modules/messenger/entities/message-template.entity';
+import { ZApiReturn } from './../src/modules/messenger/entities/z-api-return.entity';
 
 describe('MessengerController (e2e)', () => {
   let app: INestApplication;
@@ -75,7 +86,16 @@ describe('MessengerController (e2e)', () => {
           database: ':memory:',
           synchronize: true,
           dropSchema: true,
-          autoLoadEntities: true,
+          entities: [
+            User,
+            Appointment,
+            Professional,
+            Service,
+            ConversationState,
+            Message,
+            MessageTemplate,
+            ZApiReturn,
+          ],
         }),
         MessengerModule,
       ],
