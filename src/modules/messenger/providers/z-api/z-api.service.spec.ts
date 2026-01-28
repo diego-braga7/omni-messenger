@@ -155,7 +155,7 @@ describe('ZApiProvider', () => {
 
       mockHttpService.post.mockReturnValue(of(response));
 
-      const result = await service.sendOptionList(phone, message, sections, {
+      await service.sendOptionList(phone, message, sections, {
         title: 'Menu',
       });
 

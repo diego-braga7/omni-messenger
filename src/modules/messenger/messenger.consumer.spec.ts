@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessengerConsumer } from './messenger.consumer';
 import { MessengerService } from './services/messenger.service';
-import { RABBITMQ_EVENTS } from '../../common/constants';
 import { RmqContext } from '@nestjs/microservices';
 
 describe('MessengerConsumer', () => {
@@ -52,7 +51,9 @@ describe('MessengerConsumer', () => {
 
     it('should ack the message even if processing fails', async () => {
       const data = { messageId: '123' };
-      mockMessengerService.processMessage.mockRejectedValue(new Error('Processing failed'));
+      mockMessengerService.processMessage.mockRejectedValue(
+        new Error('Processing failed'),
+      );
 
       await consumer.handleProcessMessage(data, mockRmqContext);
 

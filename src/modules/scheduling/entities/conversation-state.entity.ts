@@ -1,9 +1,4 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryColumn, Column, UpdateDateColumn } from 'typeorm';
 import { ConversationStep } from '../enums/conversation-step.enum';
 
 @Entity('conversation_states')

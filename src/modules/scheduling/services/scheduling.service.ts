@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ConversationState } from '../entities/conversation-state.entity';
 import { Service } from '../entities/service.entity';
 import { Professional } from '../entities/professional.entity';
@@ -43,7 +43,7 @@ export class SchedulingService {
 
     const user = await this.usersService.findOrCreate(phone);
 
-    let state = await this.stateRepo.findOne({ where: { phone } });
+    const state = await this.stateRepo.findOne({ where: { phone } });
 
     const normalizedText = text?.toLowerCase() || '';
 
@@ -98,7 +98,10 @@ export class SchedulingService {
           this.logger.warn(`Unknown step ${state.step} for ${phone}`);
       }
     } catch (error) {
-      this.logger.error(`Error in scheduling flow: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error in scheduling flow: ${error.message}`,
+        error.stack,
+      );
       await this.messengerProvider.sendText(
         phone,
         'Desculpe, ocorreu um erro. Por favor, tente novamente digitando "cancelar" e recomeçando.',
@@ -261,14 +264,14 @@ export class SchedulingService {
     const professional = await this.professionalRepo.findOne({
       where: { id: state.data.professionalId },
     });
-    
+
     if (!professional || !professional.calendarId) {
-         await this.messengerProvider.sendText(
-          state.phone,
-          'Erro ao buscar agenda do profissional.',
-        );
-        // Maybe reset or fallback
-        return;
+      await this.messengerProvider.sendText(
+        state.phone,
+        'Erro ao buscar agenda do profissional.',
+      );
+      // Maybe reset or fallback
+      return;
     }
 
     // Define search range (e.g., 8am to 6pm of selected date)
@@ -297,9 +300,14 @@ export class SchedulingService {
     // Generate slots (e.g., every 1 hour or based on service duration)
     // For simplicity, let's use the freeSlots directly or chop them.
     // Assuming service duration is needed.
-    const service = await this.serviceRepo.findOne({ where: { id: state.data.serviceId } });
+    const service = await this.serviceRepo.findOne({
+      where: { id: state.data.serviceId },
+    });
     if (!service) {
-      await this.messengerProvider.sendText(state.phone, 'Erro: Serviço não encontrado.');
+      await this.messengerProvider.sendText(
+        state.phone,
+        'Erro: Serviço não encontrado.',
+      );
       await this.stateRepo.delete(state.phone);
       return;
     }
@@ -308,7 +316,7 @@ export class SchedulingService {
     const availableTimes = this.generateTimeSlots(freeSlots, duration);
 
     if (availableTimes.length === 0) {
-         await this.messengerProvider.sendText(
+      await this.messengerProvider.sendText(
         state.phone,
         'Não há horários suficientes para este serviço nesta data. Tente outra data.',
       );
@@ -318,65 +326,83 @@ export class SchedulingService {
     }
 
     // Limit options (WhatsApp limitation)
-    const options = availableTimes.slice(0, 10).map(time => ({
-        id: time,
-        title: time,
+    const options = availableTimes.slice(0, 10).map((time) => ({
+      id: time,
+      title: time,
     }));
 
     await this.messengerProvider.sendOptionList(
       state.phone,
       'Horários disponíveis:',
       [{ title: 'Manhã/Tarde', rows: options }],
-      { title: 'Horários', buttonLabel: 'Ver Horários' }
+      { title: 'Horários', buttonLabel: 'Ver Horários' },
     );
   }
 
-  private async handleSelectTime(state: ConversationState, text: string, payload: any, userId: string) {
+  private async handleSelectTime(
+    state: ConversationState,
+    text: string,
+    payload: any,
+    userId: string,
+  ) {
     const time = payload?.selectedRowId || text;
-    
+
     // Validate time format HH:mm
     if (!/^\d{2}:\d{2}$/.test(time)) {
-        await this.messengerProvider.sendText(state.phone, 'Horário inválido. Selecione da lista.');
-        return;
+      await this.messengerProvider.sendText(
+        state.phone,
+        'Horário inválido. Selecione da lista.',
+      );
+      return;
     }
 
     const dateStr = state.data.date; // YYYY-MM-DD
     const startDateTime = new Date(`${dateStr}T${time}:00`);
-    
+
     // Calculate end time
-    const service = await this.serviceRepo.findOne({ where: { id: state.data.serviceId } });
+    const service = await this.serviceRepo.findOne({
+      where: { id: state.data.serviceId },
+    });
     if (!service) {
-      await this.messengerProvider.sendText(state.phone, 'Erro: Serviço não encontrado.');
+      await this.messengerProvider.sendText(
+        state.phone,
+        'Erro: Serviço não encontrado.',
+      );
       await this.stateRepo.delete(state.phone);
       return;
     }
     const duration = service.durationMinutes || 60;
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
 
-    const professional = await this.professionalRepo.findOne({ where: { id: state.data.professionalId } });
+    const professional = await this.professionalRepo.findOne({
+      where: { id: state.data.professionalId },
+    });
     if (!professional) {
-      await this.messengerProvider.sendText(state.phone, 'Erro: Profissional não encontrado.');
+      await this.messengerProvider.sendText(
+        state.phone,
+        'Erro: Profissional não encontrado.',
+      );
       await this.stateRepo.delete(state.phone);
       return;
     }
 
     // Create Google Calendar Event
     const eventId = await this.googleCalendarService.createEvent(professional, {
-        summary: `Agendamento: ${service.name} - ${professional.name}`,
-        description: `Cliente: ${state.phone}`,
-        start: startDateTime,
-        end: endDateTime,
+      summary: `Agendamento: ${service.name} - ${professional.name}`,
+      description: `Cliente: ${state.phone}`,
+      start: startDateTime,
+      end: endDateTime,
     });
 
     // Save Appointment
     const appointment = this.appointmentRepo.create({
-        userId,
-        professionalId: professional.id,
-        serviceId: service.id,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        status: AppointmentStatus.SCHEDULED,
-        googleEventId: eventId,
+      userId,
+      professionalId: professional.id,
+      serviceId: service.id,
+      startTime: startDateTime,
+      endTime: endDateTime,
+      status: AppointmentStatus.SCHEDULED,
+      googleEventId: eventId,
     });
 
     await this.appointmentRepo.save(appointment);
@@ -386,8 +412,8 @@ export class SchedulingService {
 
     // Confirm
     await this.messengerProvider.sendText(
-        state.phone,
-        `Agendamento confirmado para ${dateStr} às ${time}! Protocolo: ${eventId}`
+      state.phone,
+      `Agendamento confirmado para ${dateStr} às ${time}! Protocolo: ${eventId}`,
     );
   }
 
@@ -407,34 +433,42 @@ export class SchedulingService {
     if (parts.length >= 2) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10) - 1;
-      const year = parts.length === 3 ? parseInt(parts[2], 10) : now.getFullYear();
-      
+      const year =
+        parts.length === 3 ? parseInt(parts[2], 10) : now.getFullYear();
+
       const date = new Date(year, month, day);
-      if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
-          // If no year provided and date is in past, assume next year? Or keep current year (user error if past).
-          // Let's assume current year.
-          return date;
+      if (
+        date.getFullYear() === year &&
+        date.getMonth() === month &&
+        date.getDate() === day
+      ) {
+        // If no year provided and date is in past, assume next year? Or keep current year (user error if past).
+        // Let's assume current year.
+        return date;
       }
     }
 
     return null;
   }
 
-  private generateTimeSlots(freeIntervals: any[], durationMinutes: number): string[] {
-      const slots: string[] = [];
-      
-      for (const interval of freeIntervals) {
-          let start = new Date(interval.start);
-          const end = new Date(interval.end);
+  private generateTimeSlots(
+    freeIntervals: any[],
+    durationMinutes: number,
+  ): string[] {
+    const slots: string[] = [];
 
-          while (new Date(start.getTime() + durationMinutes * 60000) <= end) {
-              const timeString = start.toTimeString().substring(0, 5); // HH:mm
-              slots.push(timeString);
-              // Increment by duration (or 30 mins, or 1 hour?)
-              // Ideally increment by 30 mins or 1 hour to have standardized slots
-              start = new Date(start.getTime() + 60 * 60000); // 1 hour steps
-          }
+    for (const interval of freeIntervals) {
+      let start = new Date(interval.start);
+      const end = new Date(interval.end);
+
+      while (new Date(start.getTime() + durationMinutes * 60000) <= end) {
+        const timeString = start.toTimeString().substring(0, 5); // HH:mm
+        slots.push(timeString);
+        // Increment by duration (or 30 mins, or 1 hour?)
+        // Ideally increment by 30 mins or 1 hour to have standardized slots
+        start = new Date(start.getTime() + 60 * 60000); // 1 hour steps
       }
-      return slots;
+    }
+    return slots;
   }
 }

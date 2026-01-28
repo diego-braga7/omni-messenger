@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BulkSendDto {

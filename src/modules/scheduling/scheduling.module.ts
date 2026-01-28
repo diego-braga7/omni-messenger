@@ -26,8 +26,17 @@ import { UsersModule } from '../users/users.module';
     MessengerModule,
     UsersModule,
   ],
-  controllers: [SchedulingConsumer, GoogleCalendarController, ProfessionalsController],
+  controllers: [
+    SchedulingConsumer,
+    GoogleCalendarController,
+    ProfessionalsController,
+  ],
   providers: [GoogleCalendarService, SchedulingService, ProfessionalsService],
-  exports: [TypeOrmModule, GoogleCalendarService, SchedulingService, ProfessionalsService],
+  exports: [
+    TypeOrmModule,
+    GoogleCalendarService,
+    SchedulingService,
+    ProfessionalsService,
+  ],
 })
 export class SchedulingModule {}

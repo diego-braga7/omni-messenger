@@ -9,7 +9,7 @@ import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 describe('ProfessionalsService', () => {
   let service: ProfessionalsService;
-  
+
   const mockProfessionalRepo = {
     create: jest.fn(),
     save: jest.fn(),
@@ -68,7 +68,11 @@ describe('ProfessionalsService', () => {
 
   describe('create', () => {
     it('should create a professional', async () => {
-      const dto = { name: 'Dr. Test', specialty: 'Test', calendarId: 'primary' };
+      const dto = {
+        name: 'Dr. Test',
+        specialty: 'Test',
+        calendarId: 'primary',
+      };
       const entity = { id: '1', ...dto };
 
       mockProfessionalRepo.create.mockReturnValue(entity);
@@ -84,8 +88,12 @@ describe('ProfessionalsService', () => {
   describe('remove', () => {
     it('should cancel future appointments, notify users, and soft delete professional', async () => {
       const professionalId = 'prof-1';
-      const professional = { id: professionalId, name: 'Dr. Who', calendarId: 'cal-id' };
-      
+      const professional = {
+        id: professionalId,
+        name: 'Dr. Who',
+        calendarId: 'cal-id',
+      };
+
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 1);
 
@@ -113,23 +121,25 @@ describe('ProfessionalsService', () => {
         expect.objectContaining({
           id: 'appt-1',
           status: AppointmentStatus.CANCELED,
-        })
+        }),
       );
 
       // Verify notification
       expect(mockMessengerProvider.sendText).toHaveBeenCalledWith(
         '5511999999999',
-        expect.stringContaining('foi cancelado')
+        expect.stringContaining('foi cancelado'),
       );
 
       // Verify Google Calendar deletion
       expect(mockGoogleCalendarService.deleteEvent).toHaveBeenCalledWith(
         professional,
-        'evt-1'
+        'evt-1',
       );
 
       // Verify soft delete
-      expect(mockProfessionalRepo.softDelete).toHaveBeenCalledWith(professionalId);
+      expect(mockProfessionalRepo.softDelete).toHaveBeenCalledWith(
+        professionalId,
+      );
     });
   });
 });

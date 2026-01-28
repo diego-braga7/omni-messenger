@@ -50,8 +50,8 @@ describe('SchedulingService', () => {
 
   const mockConfigService = {
     get: jest.fn((key) => {
-        if (key === 'NODE_ENV') return 'DEV';
-        return null;
+      if (key === 'NODE_ENV') return 'DEV';
+      return null;
     }),
   };
 
@@ -59,10 +59,19 @@ describe('SchedulingService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SchedulingService,
-        { provide: getRepositoryToken(ConversationState), useValue: mockStateRepo },
+        {
+          provide: getRepositoryToken(ConversationState),
+          useValue: mockStateRepo,
+        },
         { provide: getRepositoryToken(Service), useValue: mockServiceRepo },
-        { provide: getRepositoryToken(Professional), useValue: mockProfessionalRepo },
-        { provide: getRepositoryToken(Appointment), useValue: mockAppointmentRepo },
+        {
+          provide: getRepositoryToken(Professional),
+          useValue: mockProfessionalRepo,
+        },
+        {
+          provide: getRepositoryToken(Appointment),
+          useValue: mockAppointmentRepo,
+        },
         { provide: GoogleCalendarService, useValue: mockGoogleCalendarService },
         { provide: MESSENGER_PROVIDER, useValue: mockMessengerProvider },
         { provide: UsersService, useValue: mockUsersService },
@@ -86,7 +95,13 @@ describe('SchedulingService', () => {
       const phone = '5511999999999';
       mockStateRepo.findOne.mockResolvedValue(null);
       mockServiceRepo.find.mockResolvedValue([
-        { id: 's1', name: 'Corte', description: 'Corte de cabelo', duration: 30, price: 50 },
+        {
+          id: 's1',
+          name: 'Corte',
+          description: 'Corte de cabelo',
+          duration: 30,
+          price: 50,
+        },
       ]);
       mockUsersService.findOrCreate.mockResolvedValue({ id: 'u1', phone });
 
@@ -103,7 +118,10 @@ describe('SchedulingService', () => {
 
     it('should handle cancellation', async () => {
       const phone = '5511999999999';
-      mockStateRepo.findOne.mockResolvedValue({ phone, step: ConversationStep.SELECT_SERVICE });
+      mockStateRepo.findOne.mockResolvedValue({
+        phone,
+        step: ConversationStep.SELECT_SERVICE,
+      });
       mockUsersService.findOrCreate.mockResolvedValue({ id: 'u1', phone });
 
       await service.handleMessage(phone, 'cancelar', 'text');

@@ -32,7 +32,6 @@ jest.mock('googleapis', () => {
 
 describe('GoogleCalendarService', () => {
   let service: GoogleCalendarService;
-  let configService: ConfigService;
 
   const mockConfigService = {
     get: jest.fn((key) => {
@@ -59,7 +58,7 @@ describe('GoogleCalendarService', () => {
 
     service = module.get<GoogleCalendarService>(GoogleCalendarService);
     configService = module.get<ConfigService>(ConfigService);
-    
+
     // Clear mocks
     jest.clearAllMocks();
   });
@@ -70,7 +69,10 @@ describe('GoogleCalendarService', () => {
 
   describe('checkAvailability', () => {
     it('should return free slots when busy slots are provided', async () => {
-      const professional = { calendarId: 'primary', googleAccessToken: 'token' };
+      const professional = {
+        calendarId: 'primary',
+        googleAccessToken: 'token',
+      };
       const start = new Date('2023-10-27T09:00:00Z');
       const end = new Date('2023-10-27T17:00:00Z');
 
@@ -95,7 +97,11 @@ describe('GoogleCalendarService', () => {
         },
       });
 
-      const freeSlots = await service.checkAvailability(professional, start, end);
+      const freeSlots = await service.checkAvailability(
+        professional,
+        start,
+        end,
+      );
 
       // Expected free slots:
       // 09:00 - 10:00
@@ -113,7 +119,10 @@ describe('GoogleCalendarService', () => {
 
   describe('createEvent', () => {
     it('should create an event and return ID', async () => {
-      const professional = { calendarId: 'primary', googleAccessToken: 'token' };
+      const professional = {
+        calendarId: 'primary',
+        googleAccessToken: 'token',
+      };
       const eventData = {
         summary: 'Test Event',
         start: new Date('2023-10-27T09:00:00Z'),
@@ -141,7 +150,10 @@ describe('GoogleCalendarService', () => {
 
   describe('deleteEvent', () => {
     it('should delete an event', async () => {
-      const professional = { calendarId: 'primary', googleAccessToken: 'token' };
+      const professional = {
+        calendarId: 'primary',
+        googleAccessToken: 'token',
+      };
       const eventId = 'event123';
 
       mCalendar.events.delete.mockResolvedValue({});

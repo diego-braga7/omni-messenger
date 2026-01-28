@@ -22,7 +22,10 @@ export class MessengerConsumer {
       await this.messengerService.processMessage(data.messageId);
       channel.ack(originalMsg);
     } catch (error) {
-      this.logger.error(`Error processing message ${data.messageId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error processing message ${data.messageId}: ${error.message}`,
+        error.stack,
+      );
       // Requeue or dead letter logic could go here
       // For now, we ack to avoid infinite loops if it's a permanent error,
       // or nack if we want to retry.

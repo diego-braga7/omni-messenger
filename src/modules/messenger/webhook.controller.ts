@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Logger, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RabbitmqService } from '../rabbitmq/rabbitmq.service';
 import { RABBITMQ_EVENTS } from '../../common/constants';
@@ -16,7 +23,9 @@ export class WebhookController {
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() payload: any) {
     const rawEnv =
-      this.configService.get<string>('NODE_ENV') || process.env.NODE_ENV || 'DEV';
+      this.configService.get<string>('NODE_ENV') ||
+      process.env.NODE_ENV ||
+      'DEV';
     const normalizedEnv = rawEnv.toUpperCase();
 
     this.logger.log(
@@ -38,8 +47,7 @@ export class WebhookController {
         };
       }
 
-      const simulatedPhone =
-        payload.phone || payload.from || '5564996064649';
+      const simulatedPhone = payload.phone || payload.from || '5564996064649';
 
       const simulatedEventData = {
         phone: simulatedPhone,

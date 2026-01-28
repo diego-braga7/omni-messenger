@@ -34,7 +34,10 @@ export class GoogleCalendarService {
     return tokens;
   }
 
-  private getOAuthClient(accessToken?: string | null, refreshToken?: string | null) {
+  private getOAuthClient(
+    accessToken?: string | null,
+    refreshToken?: string | null,
+  ) {
     if (!accessToken && !refreshToken) {
       throw new Error('No authentication credentials provided');
     }
@@ -54,11 +57,18 @@ export class GoogleCalendarService {
   }
 
   async checkAvailability(
-    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
+    professional: {
+      calendarId: string;
+      googleAccessToken?: string | null;
+      googleRefreshToken?: string | null;
+    },
     start: Date,
     end: Date,
   ): Promise<calendar_v3.Schema$TimePeriod[]> {
-    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const auth = this.getOAuthClient(
+      professional.googleAccessToken,
+      professional.googleRefreshToken,
+    );
     const calendar = google.calendar({ version: 'v3', auth });
 
     try {
@@ -72,7 +82,7 @@ export class GoogleCalendarService {
 
       const busyIntervals =
         response.data.calendars?.[professional.calendarId]?.busy || [];
-      
+
       return this.calculateFreeSlots(start, end, busyIntervals);
     } catch (error) {
       this.logger.error(
@@ -129,7 +139,11 @@ export class GoogleCalendarService {
   }
 
   async createEvent(
-    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
+    professional: {
+      calendarId: string;
+      googleAccessToken?: string | null;
+      googleRefreshToken?: string | null;
+    },
     eventData: {
       summary: string;
       description?: string;
@@ -138,7 +152,10 @@ export class GoogleCalendarService {
       attendees?: string[];
     },
   ): Promise<string> {
-    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const auth = this.getOAuthClient(
+      professional.googleAccessToken,
+      professional.googleRefreshToken,
+    );
     const calendar = google.calendar({ version: 'v3', auth });
 
     try {
@@ -158,11 +175,11 @@ export class GoogleCalendarService {
       });
 
       this.logger.log(`Event created: ${response.data.id}`);
-      
+
       if (!response.data.id) {
         throw new Error('Event created but no ID returned');
       }
-      
+
       return response.data.id;
     } catch (error) {
       this.logger.error(
@@ -174,10 +191,17 @@ export class GoogleCalendarService {
   }
 
   async deleteEvent(
-    professional: { calendarId: string; googleAccessToken?: string | null; googleRefreshToken?: string | null },
-    eventId: string
+    professional: {
+      calendarId: string;
+      googleAccessToken?: string | null;
+      googleRefreshToken?: string | null;
+    },
+    eventId: string,
   ): Promise<void> {
-    const auth = this.getOAuthClient(professional.googleAccessToken, professional.googleRefreshToken);
+    const auth = this.getOAuthClient(
+      professional.googleAccessToken,
+      professional.googleRefreshToken,
+    );
     const calendar = google.calendar({ version: 'v3', auth });
 
     try {
@@ -194,6 +218,4 @@ export class GoogleCalendarService {
       throw error;
     }
   }
-
-
 }

@@ -11,7 +11,14 @@ export class SchedulingConsumer {
 
   @EventPattern(RABBITMQ_EVENTS.MESSAGE_RECEIVED)
   async handleMessageReceived(
-    @Payload() data: { phone: string; text: string; type: string; rawPayload: any; contentPayload: any },
+    @Payload()
+    data: {
+      phone: string;
+      text: string;
+      type: string;
+      rawPayload: any;
+      contentPayload: any;
+    },
     @Ctx() context: RmqContext,
   ) {
     const channel = context.getChannelRef();
@@ -24,11 +31,14 @@ export class SchedulingConsumer {
         data.phone,
         data.text,
         data.type,
-        data.contentPayload
+        data.contentPayload,
       );
       channel.ack(originalMsg);
     } catch (error) {
-      this.logger.error(`Error processing message: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error processing message: ${error.message}`,
+        error.stack,
+      );
       // Depending on error, we might want to requeue or dead letter.
       // For now, ack to prevent infinite loops on logic errors.
       channel.ack(originalMsg);

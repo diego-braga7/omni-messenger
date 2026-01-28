@@ -27,7 +27,12 @@ import { UsersModule } from '../users/users.module';
     forwardRef(() => RabbitmqModule),
     UsersModule,
   ],
-  controllers: [MessengerController, TemplateController, WebhookController, MessengerConsumer],
+  controllers: [
+    MessengerController,
+    TemplateController,
+    WebhookController,
+    MessengerConsumer,
+  ],
   providers: [
     ZApiProvider,
     {

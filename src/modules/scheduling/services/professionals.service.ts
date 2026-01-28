@@ -24,7 +24,9 @@ export class ProfessionalsService {
     private readonly googleCalendarService: GoogleCalendarService,
   ) {}
 
-  async create(createProfessionalDto: CreateProfessionalDto): Promise<Professional> {
+  async create(
+    createProfessionalDto: CreateProfessionalDto,
+  ): Promise<Professional> {
     const professional = this.professionalRepo.create(createProfessionalDto);
     return this.professionalRepo.save(professional);
   }
@@ -41,7 +43,10 @@ export class ProfessionalsService {
     return professional;
   }
 
-  async update(id: string, updateProfessionalDto: UpdateProfessionalDto): Promise<Professional> {
+  async update(
+    id: string,
+    updateProfessionalDto: UpdateProfessionalDto,
+  ): Promise<Professional> {
     const professional = await this.findOne(id);
     this.professionalRepo.merge(professional, updateProfessionalDto);
     return this.professionalRepo.save(professional);
@@ -60,7 +65,9 @@ export class ProfessionalsService {
       relations: ['user'],
     });
 
-    this.logger.log(`Cancelling ${appointments.length} appointments for professional ${id}`);
+    this.logger.log(
+      `Cancelling ${appointments.length} appointments for professional ${id}`,
+    );
 
     for (const appointment of appointments) {
       // 1. Update status
@@ -71,19 +78,29 @@ export class ProfessionalsService {
       if (appointment.user && appointment.user.phone) {
         const message = `Olá ${appointment.user.name || ''}, seu agendamento com ${professional.name} para ${appointment.startTime.toLocaleString()} foi cancelado pois o profissional não está mais disponível. Entraremos em contato para reagendar.`;
         try {
-          await this.messengerProvider.sendText(appointment.user.phone, message);
+          await this.messengerProvider.sendText(
+            appointment.user.phone,
+            message,
+          );
         } catch (error) {
-          this.logger.error(`Failed to notify user ${appointment.user.id}: ${error.message}`);
+          this.logger.error(
+            `Failed to notify user ${appointment.user.id}: ${error.message}`,
+          );
         }
       }
 
       // 3. Remove from Google Calendar
       if (appointment.googleEventId) {
         try {
-            // Note: deleteEvent requires tokens. If professional is being deleted, we still have the entity loaded with tokens.
-            await this.googleCalendarService.deleteEvent(professional, appointment.googleEventId);
+          // Note: deleteEvent requires tokens. If professional is being deleted, we still have the entity loaded with tokens.
+          await this.googleCalendarService.deleteEvent(
+            professional,
+            appointment.googleEventId,
+          );
         } catch (error) {
-            this.logger.warn(`Failed to delete event ${appointment.googleEventId} from Google Calendar: ${error.message}`);
+          this.logger.warn(
+            `Failed to delete event ${appointment.googleEventId} from Google Calendar: ${error.message}`,
+          );
         }
       }
     }
