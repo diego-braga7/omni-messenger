@@ -57,7 +57,6 @@ describe('GoogleCalendarService', () => {
     }).compile();
 
     service = module.get<GoogleCalendarService>(GoogleCalendarService);
-    configService = module.get<ConfigService>(ConfigService);
 
     // Clear mocks
     jest.clearAllMocks();
