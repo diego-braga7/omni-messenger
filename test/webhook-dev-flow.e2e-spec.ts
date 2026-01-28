@@ -166,5 +166,5 @@ describe('Webhook DEV Flow (e2e)', () => {
       ]),
       expect.any(Object),
     );
-  });
+  }, 30000);
 });

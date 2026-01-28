@@ -24,15 +24,27 @@ jest.mock('typeorm', () => {
 import { AppModule } from './../src/app.module';
 
 // Mock the TypeOrm configuration
-jest.mock('./../src/config/typeorm.config', () => ({
-  getTypeOrmConfig: () => ({
-    type: 'sqlite',
-    database: ':memory:',
-    synchronize: true,
-    dropSchema: true,
-    autoLoadEntities: true,
-  }),
-}));
+jest.mock('./../src/config/typeorm.config', () => {
+  return {
+    getTypeOrmConfig: () => ({
+      type: 'sqlite',
+      database: ':memory:',
+      synchronize: true,
+      dropSchema: true,
+      entities: [
+        require('../src/modules/users/entities/user.entity').User,
+        require('../src/modules/scheduling/entities/appointment.entity').Appointment,
+        require('../src/modules/scheduling/entities/professional.entity').Professional,
+        require('../src/modules/scheduling/entities/service.entity').Service,
+        require('../src/modules/scheduling/entities/conversation-state.entity').ConversationState,
+        require('../src/modules/messenger/entities/message.entity').Message,
+        require('../src/modules/messenger/entities/message-template.entity').MessageTemplate,
+        require('../src/modules/messenger/entities/z-api-return.entity').ZApiReturn,
+      ],
+      autoLoadEntities: true,
+    }),
+  };
+});
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;

@@ -28,6 +28,9 @@ import { User } from './../src/modules/users/entities/user.entity';
 import { Message } from './../src/modules/messenger/entities/message.entity';
 import { MessageTemplate } from './../src/modules/messenger/entities/message-template.entity';
 import { ZApiReturn } from './../src/modules/messenger/entities/z-api-return.entity';
+import { Appointment } from './../src/modules/scheduling/entities/appointment.entity';
+import { Professional } from './../src/modules/scheduling/entities/professional.entity';
+import { Service } from './../src/modules/scheduling/entities/service.entity';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -46,7 +49,15 @@ describe('UsersController (e2e)', () => {
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [User, Message, MessageTemplate, ZApiReturn],
+          entities: [
+            User,
+            Message,
+            MessageTemplate,
+            ZApiReturn,
+            Appointment,
+            Professional,
+            Service,
+          ],
           synchronize: true,
           dropSchema: true,
         }),
