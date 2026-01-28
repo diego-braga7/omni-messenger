@@ -119,6 +119,7 @@ export class MessengerService {
       status: MessageStatus.PENDING,
       userId: user.id,
       templateId: dto.modelId,
+      delayMessage: dto.delayMessage,
     });
 
     await this.rabbitmqService.sendMessage(RABBITMQ_EVENTS.PROCESS_MESSAGE, {
@@ -237,6 +238,7 @@ export class MessengerService {
                 extension: dto.extension,
                 caption: dto.message,
                 modelId: dto.modelId,
+                delayMessage: dto.delayMessage,
               });
             } else {
               // For TEXT type, message is required.
@@ -245,6 +247,7 @@ export class MessengerService {
                 phone,
                 message: dto.message || '',
                 modelId: dto.modelId,
+                delayMessage: dto.delayMessage,
               });
             }
           } catch (e) {

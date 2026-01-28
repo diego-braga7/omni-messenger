@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsOptional, IsString, IsInt, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BulkSendDto {
@@ -58,4 +58,14 @@ export class BulkSendDto {
   @IsString()
   @IsOptional()
   modelId?: string;
+
+  @ApiProperty({
+    description: 'Tempo de delay opcional para simular digitação (em segundos, min 2)',
+    required: false,
+    minimum: 2,
+  })
+  @IsInt()
+  @Min(2)
+  @IsOptional()
+  delayMessage?: number;
 }

@@ -514,5 +514,32 @@ describe('MessengerService', () => {
         }),
       );
     });
+
+    it('should pass delayMessage to sendText when provided', async () => {
+      const dto = {
+        phones: ['1'],
+        message: 'hello',
+        delayMessage: 5,
+      };
+
+      const sendTextSpy = jest
+        .spyOn(service, 'sendText')
+        .mockResolvedValue({} as any);
+
+      await service.sendBulk(dto);
+      jest.runAllTimers();
+      // Wait for async execution in setTimeout
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(sendTextSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: '1',
+          message: 'hello',
+          delayMessage: 5,
+        }),
+      );
+    });
   });
 });
