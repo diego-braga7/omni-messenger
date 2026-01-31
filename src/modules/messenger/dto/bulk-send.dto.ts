@@ -60,7 +60,8 @@ export class BulkSendDto {
   modelId?: string;
 
   @ApiProperty({
-    description: 'Tempo de delay opcional para simular digitação (em segundos, min 2)',
+    description:
+      'Tempo de delay opcional para simular digitação (em segundos, min 2)',
     required: false,
     minimum: 2,
   })

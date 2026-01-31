@@ -5,7 +5,7 @@ export class AddGoogleAuthToProfessional1769467735055 implements MigrationInterf
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "z_api_returns" DROP CONSTRAINT "FK_ad9279700cd415326e8a2032779"`,
+      `ALTER TABLE "z_api_returns" DROP CONSTRAINT "FK_z_api_returns_message"`,
     );
     await queryRunner.query(
       `ALTER TABLE "messages" DROP CONSTRAINT "FK_messages_user"`,
@@ -145,7 +145,7 @@ export class AddGoogleAuthToProfessional1769467735055 implements MigrationInterf
       `ALTER TABLE "messages" ADD CONSTRAINT "FK_messages_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
-      `ALTER TABLE "z_api_returns" ADD CONSTRAINT "FK_ad9279700cd415326e8a2032779" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+      `ALTER TABLE "z_api_returns" ADD CONSTRAINT "FK_z_api_returns_message" FOREIGN KEY ("message_id") REFERENCES "messages"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
   }
 }
