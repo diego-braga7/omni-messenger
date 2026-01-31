@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      # Usa variável de ambiente para definir o target (development ou runner)
+      # Padrão: development (para facilitar o fluxo local)
+      target: ${BUILD_TARGET:-development}
     container_name: omni-messenger-app
     ports:
       - '3000:3000'
@@ -11,7 +15,6 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: npm run start:dev
     depends_on:
       postgres:
         condition: service_healthy
