@@ -7,18 +7,8 @@ export class CreateSchedulingTables1769398175098 implements MigrationInterface {
     // ⚠️ DROP EXISTING CONFLICTING TABLES/ENUMS FROM PREVIOUS IMPLEMENTATIONS
     // This ensures a clean slate for the new schema structure
 
-    // Drop Foreign Keys if they exist (ignoring errors if not exists would be better but simple drop is fine if we know the schema)
-    try {
-      await queryRunner.query(
-        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_service"`,
-      );
-      await queryRunner.query(
-        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_professional"`,
-      );
-      await queryRunner.query(
-        `ALTER TABLE "appointments" DROP CONSTRAINT IF EXISTS "FK_appointments_user"`,
-      );
-    } catch (e) {}
+    // Note: We use CASCADE in DROP TABLE to handle foreign keys, avoiding "relation does not exist" errors
+    // that would occur if we tried to drop constraints on non-existent tables.
 
     // Drop tables if they exist
     await queryRunner.query(
