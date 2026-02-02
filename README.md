@@ -7,19 +7,49 @@ Projeto NestJS containerizado com PostgreSQL e RabbitMQ.
 - Docker
 - Docker Compose
 
+## Configuração do Ambiente
+
+Copie o arquivo de exemplo `.env-example` para `.env` e ajuste as variáveis conforme necessário.
+
+```bash
+cp .env-example .env
+```
+
 ## Execução
 
-Para iniciar todos os serviços:
+### Modo de Desenvolvimento (Padrão)
 
-```bash
-docker-compose up --build
-```
+Ideal para desenvolvimento local com hot-reload (alterações no código refletem imediatamente).
 
-Para parar os serviços:
+1. Certifique-se de que no `.env` as variáveis estão configuradas para dev:
+   ```env
+   NODE_ENV=development
+   BUILD_TARGET=development
+   ```
+2. Inicie os serviços:
+   ```bash
+   docker-compose up --build
+   ```
 
-```bash
-docker-compose down
-```
+### Modo de Produção
+
+Ideal para deployment, com imagem otimizada e sem ferramentas de desenvolvimento.
+
+1. Altere as variáveis no `.env` para produção:
+   ```env
+   NODE_ENV=production
+   BUILD_TARGET=runner
+   ```
+2. Inicie os serviços (o build usará multi-stage para gerar uma imagem leve):
+   ```bash
+   docker-compose up --build -d
+   ```
+
+## Comandos Úteis
+
+- Parar serviços: `docker-compose down`
+- Logs em tempo real: `docker-compose logs -f app`
+- Rebuild forçado: `docker-compose up --build --force-recreate`
 
 ## Arquitetura
 
@@ -98,21 +128,3 @@ Atualmente, o consumidor processa a mensagem e, em caso de falha na API externa 
 *Para ambientes de produção, recomenda-se a configuração de Dead Letter Exchanges (DLX) para retentativas com backoff exponencial.*
 
 ## Configuração do Google Calendar
-
-Para utilizar a funcionalidade de agendamento, é necessário configurar as credenciais da API do Google Calendar:
-
-1. Crie um projeto no [Google Cloud Console](https://console.cloud.google.com/).
-2. Ative a API do Google Calendar.
-3. Crie credenciais OAuth 2.0 (Client ID e Client Secret).
-4. Adicione a URL de callback autorizada: `http://localhost:3000/auth/google/callback` (ou a URL correspondente ao seu ambiente).
-5. Preencha as variáveis no arquivo `.env` (baseado no `.env.example`).
-
-## Desenvolvimento
-
-O projeto utiliza:
-- NestJS (Framework)
-- TypeORM (ORM)
-- RabbitMQ (Mensageria)
-- Docker (Containerização)
-
-A configuração de conexão com o banco de dados e RabbitMQ é feita via variáveis de ambiente no `docker-compose.yml`.
