@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
 dotenv.config();
 
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'omni_messenger',
-  entities: ['src/**/*.entity{.ts,.js}'],
-  migrations: ['src/database/migrations/*{.ts,.js}'],
+  entities: [path.join(__dirname, '..', '**', '*.entity{.ts,.js}')],
+  migrations: [path.join(__dirname, '..', 'database', 'migrations', '*{.ts,.js}')],
   synchronize: false,
 });
