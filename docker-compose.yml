@@ -29,7 +29,7 @@ services:
     image: postgres:15-alpine
     container_name: omni-messenger-postgres
     ports:
-      - '5432:5432'
+      - "${BIND_IP:-0.0.0.0}:5432:5432"
     env_file:
       - .env
     volumes:
@@ -47,8 +47,8 @@ services:
     image: rabbitmq:3-management
     container_name: omni-messenger-rabbitmq
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - "${BIND_IP:-0.0.0.0}:15672:15672"
+      - "${BIND_IP:-0.0.0.0}:5672:5672"
     env_file:
       - .env
     volumes:
